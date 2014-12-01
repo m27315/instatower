@@ -1,0 +1,16 @@
+[
+{
+  "modid": "instatower",
+  "name": "InstaTower",
+  "description": "Jump start exploration with InstaTower.",
+  "version": "0.01",
+  "mcversion": "${mcversion}",
+  "url": "http://www.trevorbowen.com",
+  "updateUrl": "",
+  "authorList": ["m27315"],
+  "credits": "Trevor",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
