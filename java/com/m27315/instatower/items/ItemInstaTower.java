@@ -199,13 +199,13 @@ public class ItemInstaTower extends Item {
 							stack = new ItemStack(Blocks.redstone_block, 64);
 							break;
 						case 12:
-							stack = new ItemStack(Blocks.activator_rail, 64);
+							stack = new ItemStack(Blocks.golden_rail, 64);
 							break;
 						case 13:
-							stack = new ItemStack(Blocks.detector_rail, 64);
+							stack = new ItemStack(Blocks.log, 64);
 							break;
 						case 14:
-							stack = new ItemStack(Items.stick, 64);
+							stack = new ItemStack(Blocks.torch, 64);
 							break;
 						case 15:
 							stack = new ItemStack(Blocks.ladder, 64);

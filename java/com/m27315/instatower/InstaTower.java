@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.io.Files;
 import com.m27315.instatower.items.ModItems;
 
 import lib.Constants;
@@ -73,7 +75,32 @@ public class InstaTower {
 
 		try {
 			in = new BufferedReader(new FileReader(configFile));
+		} catch (FileNotFoundException e) {
+			logger.warn("(W) Config file did not exist, "
+					+ configFile.getPath());
+			logger.warn("(W) Setting config file to default!");
+			InputStream is = InstaTower.class.getResourceAsStream("/assets/"
+					+ Constants.MODID + "/schematics/instatower.cfg");
+			try {
+				Files.asByteSink(configFile).writeFrom(is);
+				is.close();
+				try {
+					in = new BufferedReader(new FileReader(configFile));
+				} catch (FileNotFoundException e1) {
+					logger.error("(E) Unable to open config file after resetting, "
+							+ configFile.getPath());
+					logger.catching(e1);
+					logger.error(e1.getStackTrace());
+				}
+			} catch (IOException e1) {
+				logger.error("(E) Unable to reset config, "
+						+ configFile.getPath() + ", with default.");
+				logger.catching(e);
+				logger.error(e.getStackTrace());
+			}
+		}
 
+		try {
 			while ((line = in.readLine()) != null) {
 				if (!isComment.matcher(line).matches()) {
 					m = isLayer.matcher(line);
@@ -203,9 +230,6 @@ public class InstaTower {
 
 				}
 			}
-		} catch (FileNotFoundException e) {
-			logger.catching(e);
-			logger.error(e.getStackTrace());
 		} catch (IOException e) {
 			logger.catching(e);
 			logger.error(e.getStackTrace());
