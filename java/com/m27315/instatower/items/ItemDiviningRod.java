@@ -7,9 +7,11 @@ import java.util.List;
 import lib.Constants;
 
 import org.apache.http.Consts;
+import org.apache.logging.log4j.Logger;
 
 import com.m27315.instatower.InstaTower;
 
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -35,8 +37,10 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemDiviningRod extends Item {
 	private String name = "itemdiviningrod";
+	private Logger logger;
 
-	public ItemDiviningRod() {
+	public ItemDiviningRod(FMLPreInitializationEvent event, Logger logger) {
+		this.logger = logger;
 		this.setMaxStackSize(1);
 		this.setUnlocalizedName(Constants.MODID + '_' + name);
 		this.setCreativeTab(CreativeTabs.tabTools);
@@ -55,7 +59,7 @@ public class ItemDiviningRod extends Item {
 	}
 
 	private void reportMetaData(World w, int x, int y, int z) {
-		InstaTower.logger.info("[" + name + "]: Coords (x,y,z)=" + x + "," + y
+		logger.info("[" + name + "]: Coords (x,y,z)=" + x + "," + y
 				+ "," + z + "; Metadata=" + w.getBlockMetadata(x, y, z)
 				+ "; Name=" + w.getBlock(x, y, z).getLocalizedName() + "; Id="
 				+ Block.getIdFromBlock(w.getBlock(x, y, z)));
