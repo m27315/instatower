@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -228,6 +229,22 @@ public class InstaTower {
 						rows.add(row);
 					}
 
+				}
+			}
+			// Find maximum length of all rows for all layers
+			int maxRowLength = 0;
+			for (List<List<Block>> rs : InstaTower.layerDefs.values()) {
+				for (List<Block> r : rs) {
+					int sz = r.size();
+					if (sz > maxRowLength) maxRowLength = sz;
+				}
+			}
+			// Normalize: Pad all rows for all layers with AIR to maximum row length.
+			for (List<List<Block>> rs : InstaTower.layerDefs.values()) {
+				for (List<Block> r : rs) {
+					for (int i=r.size(); i < maxRowLength; i++) {
+						r.add(Blocks.air);
+					}
 				}
 			}
 		} catch (IOException e) {

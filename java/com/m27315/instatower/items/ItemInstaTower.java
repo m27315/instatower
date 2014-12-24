@@ -1,5 +1,7 @@
 package com.m27315.instatower.items;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import lib.Constants;
@@ -26,6 +28,8 @@ import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -52,15 +56,30 @@ public class ItemInstaTower extends Item {
 		if (!world.isRemote && side == 1
 				&& player.canPlayerEdit(x, y + 1, z, side, stack)
 				&& player.canPlayerEdit(x, y + 2, z, side, stack)) {
-			InstaTower.logger.debug("onItemUseFirst: stack=" + stack
+			// Direction: 0=South, 1=West, 2=North, 3=East
+			int facingDirection = MathHelper
+					.floor_double((double) ((player.rotationYaw * 4F) / 360F) + 0.5D) & 3;
+			InstaTower.logger.info("onItemUseFirst: stack=" + stack
 					+ "\n    x=" + x + ", y=" + y + ", z=" + z + ", side="
 					+ side + "\n    hitX=" + hitX + ", hitY=" + hitY
 					+ ", hitZ=" + hitZ);
 			// reportMetaData(world, -472, 78, 404);
+			InstaTower.logger.info("Look Vector=" + player.getLookVec()
+					+ ", CameraPitch=" + player.cameraPitch + ", CameraYaw="
+					+ player.cameraYaw + ", rotationPitch="
+					+ player.rotationPitch + ", rotationYaw="
+					+ player.rotationYaw + ", rotationHeadYaw="
+					+ player.rotationYawHead + ", facing=" + facingDirection);
+			// Offset structure to find red carpet entrance.
+			Vec3 offset = findRedCarpet(facingDirection);
+			x += (int) offset.xCoord;
+			z += (int) offset.zCoord;
 			// Prepare site - assume first layer is biggest.
 			Block dirt = Blocks.dirt;
 			List<List<Block>> blocks = InstaTower.layerDefs
 					.get(InstaTower.layerStack.get(0));
+			// Rotate structure according to direction faced.
+			blocks = rotateBlocks(blocks, facingDirection);
 			for (int j = 0; j < blocks.size(); j++) {
 				List<Block> row = blocks.get(j);
 				for (int i = 0; i < row.size(); i++) {
@@ -81,7 +100,7 @@ public class ItemInstaTower extends Item {
 			// Lay down each layer
 			for (int n = 0; n < InstaTower.layerStack.size(); n++) {
 				String layer = InstaTower.layerStack.get(n);
-				blocks = InstaTower.layerDefs.get(layer);
+				blocks = rotateBlocks(InstaTower.layerDefs.get(layer), facingDirection);
 				setLayer(world, x, y + n, z, blocks);
 			}
 			// Have some animals! Yee-haw!
@@ -99,6 +118,91 @@ public class ItemInstaTower extends Item {
 			return true;
 		}
 		return false;
+	}
+
+	private List<List<Block>> rotateBlocks(final List<List<Block>> inBlocks,
+			int facingDirection) {
+
+		List<List<Block>> outBlocks = new ArrayList<List<Block>>();
+		switch (facingDirection) {
+		case 0:
+			// Facing SOUTH
+			for (int i = inBlocks.get(0).size()-1; i >= 0; i--) {
+				List<Block> outRow = new ArrayList<Block>();
+				for (int j = 0; j < inBlocks.size(); j++) {
+					outRow.add(inBlocks.get(j).get(i));
+				}
+				outBlocks.add(outRow);
+			}
+			break;
+		case 1:
+			// FACING WEST
+			outBlocks = inBlocks;
+			break;
+		case 2:
+			// FACING NORTH
+			for (int i = 0; i < inBlocks.get(0).size(); i++) {
+				List<Block> outRow = new ArrayList<Block>();
+				for (int j = inBlocks.size()-1; j >= 0; j--) {
+					outRow.add(inBlocks.get(j).get(i));
+				}
+				outBlocks.add(outRow);
+			}
+			break;
+		default:
+			// FACING EAST
+			for (int j = inBlocks.size()-1; j >= 0; j--) {
+				List<Block> outRow = new ArrayList<Block>();
+				List<Block> inRow = inBlocks.get(j);
+				for (int i = inRow.size()-1; i >=0; i--) {
+					outRow.add(inRow.get(i));
+				}
+				outBlocks.add(outRow);
+			}
+			break;
+		}
+		return outBlocks;
+	}
+
+	private Vec3 findRedCarpet(int facingDirection) {
+		Block r = Blocks.carpet;
+		Vec3 offset = Vec3.createVectorHelper(0.0, 0.0, 0.0);
+		offset.xCoord = offset.yCoord = offset.zCoord = (double) 0;
+		for (int n = 0; n < InstaTower.layerStack.size(); n++) {
+			String layer = InstaTower.layerStack.get(n);
+			List<List<Block>> blocks = InstaTower.layerDefs.get(layer);
+			for (int j = 0; j < blocks.size(); j++) {
+				List<Block> row = blocks.get(j);
+				for (int i = 0; i < row.size(); i++) {
+					Block b = row.get(i);
+					if (r.equals(b)) {
+						switch (facingDirection) {
+						case 0:
+							// Facing SOUTH
+							offset.xCoord = (double) -j;
+							offset.zCoord = (double) i-row.size()+1.0;
+							return offset;
+						case 1:
+							// FACING WEST
+							offset.xCoord = (double) -i;
+							offset.zCoord = (double) -j;
+							return offset;
+						case 2:
+							// FACING NORTH
+							offset.xCoord = (double) j-blocks.size()+1.0;
+							offset.zCoord = (double) -i;
+							return offset;
+						default:
+							// FACING EAST
+							offset.xCoord = (double) i-row.size()+1.0;
+							offset.zCoord = (double) j-blocks.size()+1.0;
+							return offset;
+						}
+					}
+				}
+			}
+		}
+		return offset;
 	}
 
 	private Entity spawnEntity(World world, Entity entity, int x, int y, int z) {
