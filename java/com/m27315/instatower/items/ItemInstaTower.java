@@ -276,6 +276,53 @@ public class ItemInstaTower extends Item {
 		return findNeighbors(blocks, ' ', i, j);
 	}
 
+	private void setAnvil(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+		Block anvil = Blocks.anvil;
+		List<Integer> stones = findNeighbors(blocks, 'S', i, j);
+		if (stones.isEmpty()) {
+			List<Integer> openSides = findOpenSides(blocks, i, j);
+			if (openSides.isEmpty()) {
+				logger.info("Setting default anvil - no metadata.");
+				setBlock(world, x, y, z, anvil);
+			} else {
+				switch (openSides.get(0)) {
+				case SOUTH:
+					logger.info("Setting anvil open to SOUTH");
+					setBlock(world, x, y, z, anvil, 1, blockUpdateFlag);
+					break;
+				case WEST:
+					logger.info("Setting anvil open to WEST");
+					setBlock(world, x, y, z, anvil, 2, blockUpdateFlag);
+					break;
+				case NORTH:
+					logger.info("Setting anvil open to NORTH");
+					setBlock(world, x, y, z, anvil, 2, blockUpdateFlag);
+					break;
+				case EAST:
+					logger.info("Setting anvil open to EAST");
+					setBlock(world, x, y, z, anvil, 0, blockUpdateFlag);
+					break;
+				}
+			}
+		} else {
+			switch (stones.get(0)) {
+			case SOUTH:
+				setBlock(world, x, y, z, anvil, 3, blockUpdateFlag);
+				break;
+			case WEST:
+				setBlock(world, x, y, z, anvil, 0, blockUpdateFlag);
+				break;
+			case NORTH:
+				setBlock(world, x, y, z, anvil, 1, blockUpdateFlag);
+				break;
+			case EAST:
+				setBlock(world, x, y, z, anvil, 2, blockUpdateFlag);
+				break;
+			}
+		}
+	}
+
 	private void setBed(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 		Block bed = Blocks.bed;
@@ -352,6 +399,39 @@ public class ItemInstaTower extends Item {
 		}
 	}
 
+	private void setFurnace(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+
+		List<Integer> openSides = findOpenSides(blocks, i, j);
+		Block furnace = Blocks.furnace;
+		logger.info("setFurnace: (x,y,z)=(" + x + "," + y + "," + z
+				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+				+ " open sides.");
+		if (openSides.isEmpty()) {
+			logger.info("Setting default furnace - no metadata.");
+			setBlock(world, x, y, z, furnace);
+		} else {
+			switch (openSides.get(0)) {
+			case SOUTH:
+				logger.info("Setting furnace open to SOUTH");
+				setBlock(world, x, y, z, furnace, 3, blockUpdateFlag);
+				break;
+			case WEST:
+				logger.info("Setting furnace open to WEST");
+				setBlock(world, x, y, z, furnace, 4, blockUpdateFlag);
+				break;
+			case NORTH:
+				logger.info("Setting furnace open to NORTH");
+				setBlock(world, x, y, z, furnace, 2, blockUpdateFlag);
+				break;
+			case EAST:
+				logger.info("Setting furnace open to EAST");
+				setBlock(world, x, y, z, furnace, 5, blockUpdateFlag);
+				break;
+			}
+		}
+	}
+
 	private void setLadder(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
 		List<Integer> stones = findNeighbors(blocks, 'S', i, j);
@@ -401,8 +481,7 @@ public class ItemInstaTower extends Item {
 				char b = row.get(i);
 				switch (b) {
 				case 'a':
-					world.setBlock(x + i, y, z + j, Blocks.anvil, 1,
-							blockUpdateFlag);
+					setAnvil(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'b':
 					setBlock(world, x + i, y, z + j, Blocks.brewing_stand);
@@ -489,7 +568,7 @@ public class ItemInstaTower extends Item {
 					setBlock(world, x + i, y, z + j, Blocks.farmland);
 					break;
 				case 'F':
-					setBlock(world, x + i, y, z + j, Blocks.furnace);
+					// Set on next pass.
 					break;
 				case 'j':
 					setBlock(world, x + i, y, z + j, Blocks.glowstone);
@@ -581,6 +660,9 @@ public class ItemInstaTower extends Item {
 			for (int i = 0; i < row.size(); i++) {
 				char b = row.get(i);
 				switch (b) {
+				case 'F':
+					setFurnace(world, x + i, y, z + j, i, j, blocks);
+					break;
 				case 'l':
 					setLadder(world, x + i, y, z + j, i, j, blocks, prevBlocks);
 					break;
