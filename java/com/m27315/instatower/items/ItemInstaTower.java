@@ -276,6 +276,44 @@ public class ItemInstaTower extends Item {
 		return findNeighbors(blocks, ' ', i, j);
 	}
 
+	private List<Integer> findOpenSidesWithBlockedBacks(
+			List<List<Character>> blocks, int i, int j) {
+		List<Integer> openWithBlockedBacks = new ArrayList<Integer>();
+		List<Integer> openSides = findOpenSides(blocks, i, j);
+		for (int side : openSides) {
+			switch (side) {
+			case SOUTH:
+				if (!openSides.contains(NORTH))
+					openWithBlockedBacks.add(side);
+				break;
+			case WEST:
+				if (!openSides.contains(EAST))
+					openWithBlockedBacks.add(side);
+				break;
+			case NORTH:
+				if (!openSides.contains(SOUTH))
+					openWithBlockedBacks.add(side);
+				break;
+			case EAST:
+				if (!openSides.contains(WEST))
+					openWithBlockedBacks.add(side);
+				break;
+			}
+		}
+		return openWithBlockedBacks;
+	}
+
+	private List<Integer> findPreferredOpenSides(List<List<Character>> blocks,
+			int i, int j) {
+		// Prefer open-sides that have something immediately behind them.
+		List<Integer> openSides = findOpenSidesWithBlockedBacks(blocks, i, j);
+		// If no preferred open-sides, return any open sides.
+		if (openSides.isEmpty())
+			return findOpenSides(blocks, i, j);
+		// Return list of preferred.
+		return openSides;
+	}
+
 	private void setAnvil(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 		Block anvil = Blocks.anvil;
@@ -399,6 +437,139 @@ public class ItemInstaTower extends Item {
 		}
 	}
 
+	private TileEntityChest setChestBlock(World world, int x, int y, int z,
+			int i, int j, List<List<Character>> blocks) {
+		Block chest = Blocks.chest;
+		List<Integer> otherPiece = findNeighbors(blocks, 'c', i, j);
+		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
+		// Is this a lone chest, not a double chest?
+		if (otherPiece.isEmpty()) {
+			// Yes, this is a lone chest. Check for faces with walls opposite.
+			if (openSides.isEmpty()) {
+				// Set chest with default (i.e., no) metadata.
+				return (TileEntityChest) setBlock(world, x, y, z, chest);
+			}
+			switch (openSides.get(0)) {
+			case SOUTH:
+				logger.info("Setting chest open to SOUTH");
+				return (TileEntityChest) setBlock(world, x, y, z, chest, 3,
+						blockUpdateFlag);
+			case WEST:
+				logger.info("Setting chest open to WEST");
+				return (TileEntityChest) setBlock(world, x, y, z, chest, 4,
+						blockUpdateFlag);
+			case NORTH:
+				logger.info("Setting chest open to NORTH");
+				return (TileEntityChest) setBlock(world, x, y, z, chest, 2,
+						blockUpdateFlag);
+			case EAST:
+				logger.info("Setting chest open to EAST");
+				return (TileEntityChest) setBlock(world, x, y, z, chest, 5,
+						blockUpdateFlag);
+			}
+		} else {
+			int x2 = x;
+			int z2 = z;
+			int i2 = i;
+			int j2 = j;
+			List<Integer> openSides2 = null;
+			switch (otherPiece.get(0)) {
+			case SOUTH:
+				logger.info("Other chest half to SOUTH");
+			case NORTH:
+				logger.info("Other chest half to NORTH");
+				if (openSides.contains(WEST)) {
+					logger.info("Setting chest open to WEST");
+					return (TileEntityChest) setBlock(world, x, y, z, chest, 4,
+							blockUpdateFlag);
+				} else {
+					logger.info("Setting chest open to EAST");
+					return (TileEntityChest) setBlock(world, x, y, z, chest, 5,
+							blockUpdateFlag);
+				}
+			case WEST:
+				logger.info("Other chest half to WEST");
+			case EAST:
+				logger.info("Other chest half to EAST");
+				if (openSides.contains(SOUTH)) {
+					logger.info("Setting chest open to SOUTH");
+					return (TileEntityChest) setBlock(world, x, y, z, chest, 3,
+							blockUpdateFlag);
+				} else {
+					logger.info("Setting chest open to NORTH");
+					return (TileEntityChest) setBlock(world, x, y, z, chest, 2,
+							blockUpdateFlag);
+				}
+			}
+		}
+		// Should not get here.
+		return (TileEntityChest) setBlock(world, x, y, z, chest);
+	}
+
+	private void setChest(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+
+		TileEntityChest tec = setChestBlock(world, x, y, z, i, j, blocks);
+		ItemStack stack = null;
+
+		switch (++this.numberOfChests % 16) {
+		case 0:
+			stack = null;
+			break;
+		case 1:
+			stack = new ItemStack(Items.diamond, 64);
+			break;
+		case 2:
+			stack = new ItemStack(Items.iron_ingot, 64);
+			break;
+		case 3:
+			stack = new ItemStack(Items.cooked_beef, 64);
+			break;
+		case 4:
+			stack = new ItemStack(Items.enchanted_book, 64);
+			break;
+		case 5:
+			stack = new ItemStack(Items.coal, 64);
+			break;
+		case 6:
+			stack = new ItemStack(Items.flint, 64);
+			break;
+		case 7:
+			stack = new ItemStack(Items.golden_apple, 64);
+			break;
+		case 8:
+			stack = new ItemStack(Items.arrow, 64);
+			break;
+		case 9:
+			stack = new ItemStack(Blocks.rail, 64);
+			break;
+		case 10:
+			stack = new ItemStack(Blocks.redstone_torch, 64);
+			break;
+		case 11:
+			stack = new ItemStack(Blocks.redstone_block, 64);
+			break;
+		case 12:
+			stack = new ItemStack(Blocks.golden_rail, 64);
+			break;
+		case 13:
+			stack = new ItemStack(Blocks.log, 64);
+			break;
+		case 14:
+			stack = new ItemStack(Blocks.torch, 64);
+			break;
+		case 15:
+			stack = new ItemStack(Blocks.ladder, 64);
+			break;
+		}
+		if (stack != null) {
+			for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
+				tec.setInventorySlotContents(slot, stack);
+			}
+			world.notifyBlockChange(x, y, z, Blocks.chest);
+		}
+	}
+
 	private void setFurnace(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 
@@ -490,64 +661,7 @@ public class ItemInstaTower extends Item {
 					setBlock(world, x + i, y, z + j, Blocks.bookshelf);
 					break;
 				case 'c':
-					TileEntityChest tec = (TileEntityChest) setBlock(world, x
-							+ i, y, z + j, Blocks.chest);
-					ItemStack stack = null;
-					switch (++this.numberOfChests % 16) {
-					case 0:
-						stack = null;
-						break;
-					case 1:
-						stack = new ItemStack(Items.diamond, 64);
-						break;
-					case 2:
-						stack = new ItemStack(Items.iron_ingot, 64);
-						break;
-					case 3:
-						stack = new ItemStack(Items.cooked_beef, 64);
-						break;
-					case 4:
-						stack = new ItemStack(Items.enchanted_book, 64);
-						break;
-					case 5:
-						stack = new ItemStack(Items.coal, 64);
-						break;
-					case 6:
-						stack = new ItemStack(Items.flint, 64);
-						break;
-					case 7:
-						stack = new ItemStack(Items.golden_apple, 64);
-						break;
-					case 8:
-						stack = new ItemStack(Items.arrow, 64);
-						break;
-					case 9:
-						stack = new ItemStack(Blocks.rail, 64);
-						break;
-					case 10:
-						stack = new ItemStack(Blocks.redstone_torch, 64);
-						break;
-					case 11:
-						stack = new ItemStack(Blocks.redstone_block, 64);
-						break;
-					case 12:
-						stack = new ItemStack(Blocks.golden_rail, 64);
-						break;
-					case 13:
-						stack = new ItemStack(Blocks.log, 64);
-						break;
-					case 14:
-						stack = new ItemStack(Blocks.torch, 64);
-						break;
-					case 15:
-						stack = new ItemStack(Blocks.ladder, 64);
-						break;
-					}
-					if (stack != null) {
-						for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
-							tec.setInventorySlotContents(slot, stack);
-						}
-					}
+					// Set on next pass.
 					break;
 				case 'C':
 					setBlock(world, x + i, y, z + j, Blocks.crafting_table);
@@ -660,6 +774,9 @@ public class ItemInstaTower extends Item {
 			for (int i = 0; i < row.size(); i++) {
 				char b = row.get(i);
 				switch (b) {
+				case 'c':
+					setChest(world, x + i, y, z + j, i, j, blocks);
+					break;
 				case 'F':
 					setFurnace(world, x + i, y, z + j, i, j, blocks);
 					break;
