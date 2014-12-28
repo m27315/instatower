@@ -85,6 +85,7 @@ public class ItemInstaTower extends Item {
 			loadConfigFile();
 			numberOfBeacons = 0;
 			numberOfChests = 0;
+			List<List<Character>> prevBlocks = null;
 
 			// Direction: 0=South, 1=West, 2=North, 3=East
 			int facingDirection = MathHelper
@@ -129,7 +130,8 @@ public class ItemInstaTower extends Item {
 			for (int n = 0; n < layerStack.size(); n++) {
 				String layer = layerStack.get(n);
 				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-				setLayer(world, x, y + n, z, blocks);
+				setLayer(world, x, y + n, z, blocks, prevBlocks);
+				prevBlocks = blocks;
 			}
 			// Have some animals! Yee-haw!
 			for (int n = 0; n < 2; n++) {
@@ -277,25 +279,25 @@ public class ItemInstaTower extends Item {
 	private void setBed(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 		Block bed = Blocks.bed;
-		logger.info("Entering setBed for (x,y,z)=(" + x + "," + y + "," + z
-				+ ") and (i,j)=(" + i + "," + j + ")");
+		// logger.info("Entering setBed for (x,y,z)=(" + x + "," + y + "," + z
+		// + ") and (i,j)=(" + i + "," + j + ")");
 		List<Integer> openSidesThisPiece = findOpenSides(blocks, i, j);
 		List<Integer> otherBedPiece = findNeighbors(blocks, 'H', i, j);
-		logger.info(openSidesThisPiece.size()
-				+ " open sides for this block, and " + otherBedPiece.size()
-				+ " bed piece ...");
+		// logger.info(openSidesThisPiece.size()
+		// + " open sides for this block, and " + otherBedPiece.size()
+		// + " bed piece ...");
 		if (otherBedPiece.size() > 0) {
 			// Contains specific location for other half.
 			switch (otherBedPiece.get(0)) {
 			case SOUTH:
 				// SOUTH of this bed piece
 				if (openSidesThisPiece.contains(NORTH)) {
-					logger.info("This is a foot open to the NORTH with head to the SOUTH.");
+					// logger.info("This is a foot open to the NORTH with head to the SOUTH.");
 					// Assume this piece is foot, since it is open to NORTH
 					setBlock(world, x, y, z, bed, 0, blockUpdateFlag);
 					setBlock(world, x, y, z + 1, bed, 8, blockUpdateFlag);
 				} else {
-					logger.info("This is a head blocked to the NORTH with foot to the SOUTH.");
+					// logger.info("This is a head blocked to the NORTH with foot to the SOUTH.");
 					// Assume this piece is head, since it is blocked to NORTH
 					setBlock(world, x, y, z, bed, 10, blockUpdateFlag);
 					setBlock(world, x, y, z + 1, bed, 2, blockUpdateFlag);
@@ -304,12 +306,12 @@ public class ItemInstaTower extends Item {
 			case WEST:
 				// WEST of this bed piece
 				if (openSidesThisPiece.contains(EAST)) {
-					logger.info("This is a foot open to the EAST with head to the WEST.");
+					// logger.info("This is a foot open to the EAST with head to the WEST.");
 					// Assume this piece is foot, since it is open to WEST
 					setBlock(world, x, y, z, bed, 1, blockUpdateFlag);
 					setBlock(world, x - 1, y, z, bed, 9, blockUpdateFlag);
 				} else {
-					logger.info("This is a head blocked to the EAST with foot to the WEST.");
+					// logger.info("This is a head blocked to the EAST with foot to the WEST.");
 					// Assume this piece is head, since it is blocked to WEST
 					setBlock(world, x, y, z, bed, 11, blockUpdateFlag);
 					setBlock(world, x - 1, y, z, bed, 3, blockUpdateFlag);
@@ -325,15 +327,72 @@ public class ItemInstaTower extends Item {
 						+ otherBedPiece.get(0) + ".");
 				break;
 			}
-		} else {
-			setBlock(world, x, y, z, Blocks.bed, 8, blockUpdateFlag); // head of
-																		// bed
-			setBlock(world, x, y, z - 1, Blocks.bed, 0, blockUpdateFlag); // foot
 		}
 	}
 
-	private void setLayer(World world, int x, int y, int z,
+	private void setButton(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
+		List<Integer> stones = findNeighbors(blocks, 'S', i, j);
+		if (stones.size() > 0) {
+			Block btn = Blocks.wooden_button;
+			switch (stones.get(0)) {
+			case SOUTH:
+				setBlock(world, x, y, z, btn, 4, blockUpdateFlag);
+				break;
+			case WEST:
+				setBlock(world, x, y, z, btn, 1, blockUpdateFlag);
+				break;
+			case NORTH:
+				setBlock(world, x, y, z, btn, 3, blockUpdateFlag);
+				break;
+			case EAST:
+				setBlock(world, x, y, z, btn, 2, blockUpdateFlag);
+				break;
+			}
+		}
+	}
+
+	private void setLadder(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
+		List<Integer> stones = findNeighbors(blocks, 'S', i, j);
+		logger.info("setLadder: (x,y,z)=(" + x + "," + y + "," + z
+				+ "), (i,j)=(" + i + "," + j + "), " + stones.size()
+				+ " neighboring stones.");
+		if (!stones.isEmpty()) {
+			Block ldr = Blocks.ladder;
+			if (stones.size() == 4) {
+				stones = findNeighbors(prevBlocks, 'S', i, j);
+				logger.info("setLadder: surrouned by stones. Checking previous layer. Found "
+						+ stones.size()
+						+ " neighboring stones on the layer below.");
+				if (stones.isEmpty()) {
+					return;
+				}
+			}
+			switch (stones.get(0)) {
+			case SOUTH:
+				logger.info("Setting ladder with block backing to the SOUTH");
+				setBlock(world, x, y, z, ldr, 2, blockUpdateFlag);
+				break;
+			case WEST:
+				logger.info("Setting ladder with block backing to the WEST");
+				setBlock(world, x, y, z, ldr, 5, blockUpdateFlag);
+				break;
+			case NORTH:
+				logger.info("Setting ladder with block backing to the NORTH");
+				setBlock(world, x, y, z, ldr, 3, blockUpdateFlag);
+				break;
+			case EAST:
+				logger.info("Setting ladder with block backing to the EAST");
+				setBlock(world, x, y, z, ldr, 4, blockUpdateFlag);
+				break;
+			}
+		}
+
+	}
+
+	private void setLayer(World world, int x, int y, int z,
+			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
 
 		// place everything but torches and doors
 		for (int j = 0; j < blocks.size(); j++) {
@@ -450,8 +509,7 @@ public class ItemInstaTower extends Item {
 					setBed(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'l':
-					setBlock(world, x + i, y, z + j, Blocks.ladder, 5,
-							blockUpdateFlag);
+					// Set on next pass.
 					break;
 				case 'L':
 					setBlock(world, x + i, y, z + j, Blocks.waterlily);
@@ -464,8 +522,7 @@ public class ItemInstaTower extends Item {
 					setBlock(world, x + i, y, z + j, Blocks.obsidian);
 					break;
 				case 'p':
-					// Set on next pass: setBlock(world, x + i, y, z + j,
-					// Blocks.wooden_pressure_plate);
+					// Set on next pass.
 					break;
 				case 'P':
 					setBlock(world, x + i, y, z + j, Blocks.potatoes, 7,
@@ -495,8 +552,7 @@ public class ItemInstaTower extends Item {
 					// Set on next pass.
 					break;
 				case 'u':
-					setBlock(world, x + i, y, z + j, Blocks.wooden_button, 1,
-							blockUpdateFlag);
+					setButton(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'w':
 					setBlock(world, x + i, y, z + j, Blocks.water, 0,
@@ -525,6 +581,9 @@ public class ItemInstaTower extends Item {
 			for (int i = 0; i < row.size(); i++) {
 				char b = row.get(i);
 				switch (b) {
+				case 'l':
+					setLadder(world, x + i, y, z + j, i, j, blocks, prevBlocks);
+					break;
 				case 't':
 					if (world.isSideSolid(x + i, y - 1, z + j,
 							ForgeDirection.UP, false)) {
