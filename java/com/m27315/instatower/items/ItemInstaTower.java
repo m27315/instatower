@@ -511,63 +511,96 @@ public class ItemInstaTower extends Item {
 
 		TileEntityChest tec = setChestBlock(world, x, y, z, i, j, blocks);
 		ItemStack stack = null;
+		++this.numberOfChests;
 
-		switch (++this.numberOfChests % 16) {
-		case 0:
-			stack = null;
-			break;
-		case 1:
-			stack = new ItemStack(Items.diamond, 64);
-			break;
-		case 2:
-			stack = new ItemStack(Items.iron_ingot, 64);
-			break;
-		case 3:
-			stack = new ItemStack(Items.cooked_beef, 64);
-			break;
-		case 4:
-			stack = new ItemStack(Items.enchanted_book, 64);
-			break;
-		case 5:
-			stack = new ItemStack(Items.coal, 64);
-			break;
-		case 6:
-			stack = new ItemStack(Items.flint, 64);
-			break;
-		case 7:
-			stack = new ItemStack(Items.golden_apple, 64);
-			break;
-		case 8:
-			stack = new ItemStack(Items.arrow, 64);
-			break;
-		case 9:
-			stack = new ItemStack(Blocks.rail, 64);
-			break;
-		case 10:
-			stack = new ItemStack(Blocks.redstone_torch, 64);
-			break;
-		case 11:
-			stack = new ItemStack(Blocks.redstone_block, 64);
-			break;
-		case 12:
-			stack = new ItemStack(Blocks.golden_rail, 64);
-			break;
-		case 13:
-			stack = new ItemStack(Blocks.log, 64);
-			break;
-		case 14:
-			stack = new ItemStack(Blocks.torch, 64);
-			break;
-		case 15:
-			stack = new ItemStack(Blocks.ladder, 64);
-			break;
-		}
-		if (stack != null) {
-			for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
+		for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
+			switch (this.numberOfChests % 16) {
+			case 0:
+				stack = null;
+				break;
+			case 1:
+				stack = new ItemStack(Items.diamond, 64);
+				break;
+			case 2:
+				stack = new ItemStack(Items.iron_ingot, 64);
+				break;
+			case 3:
+				stack = new ItemStack(Items.cooked_beef, 64);
+				break;
+			case 4:
+				stack = new ItemStack(Items.enchanted_book, 64);
+				break;
+			case 5:
+				stack = new ItemStack(Items.coal, 64);
+				break;
+			case 6:
+				stack = new ItemStack(Items.flint, 64);
+				break;
+			case 7:
+				stack = new ItemStack(Items.golden_apple, 64);
+				break;
+			case 8:
+				stack = new ItemStack(Items.arrow, 64);
+				break;
+			case 9:
+				stack = new ItemStack(Blocks.rail, 64);
+				break;
+			case 10:
+				stack = new ItemStack(Blocks.redstone_torch, 64);
+				break;
+			case 11:
+				stack = new ItemStack(Blocks.redstone_block, 64);
+				break;
+			case 12:
+				stack = new ItemStack(Blocks.golden_rail, 64);
+				break;
+			case 13:
+				stack = new ItemStack(Blocks.log, 64);
+				break;
+			case 14:
+				stack = new ItemStack(Blocks.torch, 64);
+				break;
+			case 15:
+				stack = new ItemStack(Blocks.ladder, 64);
+				break;
+			}
+			if (stack != null) {
 				tec.setInventorySlotContents(slot, stack);
 			}
-			world.notifyBlockChange(x, y, z, Blocks.chest);
 		}
+		world.notifyBlockChange(x, y, z, Blocks.chest);
+	}
+
+	private void setDoor(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+		Block door = Blocks.iron_door;
+		List<Integer> carpet = findNeighbors(blocks, 'r', i, j);
+		if (carpet.isEmpty()) {
+			ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
+		} else {
+			switch (carpet.get(0)) {
+			case SOUTH:
+				logger.info("Setting door open to SOUTH");
+				ItemDoor.placeDoorBlock(world, x, y, z, 3, door);
+				break;
+			case WEST:
+				logger.info("Setting furnace open to WEST");
+				ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
+				break;
+			case NORTH:
+				logger.info("Setting door open to NORTH");
+				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
+				break;
+			case EAST:
+				logger.info("Setting door open to EAST");
+				ItemDoor.placeDoorBlock(world, x, y, z, 2, door);
+				break;
+			}
+		}
+		world.notifyBlockChange(x, y, z, door);
+		world.notifyBlockChange(x, y+1, z, door);
+		// setBlock(world, x + i, y, z + j, b, 2, 0);
+		// setBlock(world, x + i, y + 1, z + j, b, 8, 0);
 	}
 
 	private void setFurnace(World world, int x, int y, int z, int i, int j,
@@ -796,10 +829,7 @@ public class ItemInstaTower extends Item {
 							Blocks.wooden_pressure_plate, 0, blockUpdateFlag);
 					break;
 				case 'D':
-					ItemDoor.placeDoorBlock(world, x + i, y, z + j, 3,
-							Blocks.iron_door);
-					// setBlock(world, x + i, y, z + j, b, 2, 0);
-					// setBlock(world, x + i, y + 1, z + j, b, 8, 0);
+					setDoor(world, x + i, y, z + j, i, j, blocks);
 					break;
 				default:
 					// Do nothing.
