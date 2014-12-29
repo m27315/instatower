@@ -581,26 +581,56 @@ public class ItemInstaTower extends Item {
 			switch (carpet.get(0)) {
 			case SOUTH:
 				logger.info("Setting door open to SOUTH");
-				ItemDoor.placeDoorBlock(world, x, y, z, 3, door);
+				//ItemDoor.placeDoorBlock(world, x, y, z, 3, door);
+				setBlock(world, x, y, z, door, 3, blockUpdateFlag);
 				break;
 			case WEST:
-				logger.info("Setting furnace open to WEST");
-				ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
+				logger.info("Setting door open to WEST");
+//				ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
+				setBlock(world, x, y, z, door, 0, blockUpdateFlag);
 				break;
 			case NORTH:
 				logger.info("Setting door open to NORTH");
-				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
+//				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
+				setBlock(world, x, y, z, door, 1, blockUpdateFlag);
 				break;
 			case EAST:
 				logger.info("Setting door open to EAST");
-				ItemDoor.placeDoorBlock(world, x, y, z, 2, door);
+//				ItemDoor.placeDoorBlock(world, x, y, z, 2, door);
+				setBlock(world, x, y, z, door, 2, blockUpdateFlag);
 				break;
 			}
 		}
 		world.notifyBlockChange(x, y, z, door);
-		world.notifyBlockChange(x, y+1, z, door);
-		// setBlock(world, x + i, y, z + j, b, 2, 0);
-		// setBlock(world, x + i, y + 1, z + j, b, 8, 0);
+		setBlock(world, x, y + 1, z, door, 8, blockUpdateFlag);
+		world.notifyBlockChange(x, y + 1, z, door);
+	}
+
+	private void setFenceGate(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+
+		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
+		Block gate = Blocks.fence_gate;
+		logger.info("setgate: (x,y,z)=(" + x + "," + y + "," + z
+				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+				+ " open sides.");
+		if (openSides.isEmpty()) {
+			logger.info("Setting default gate - no metadata.");
+			setBlock(world, x, y, z, gate);
+		} else {
+			switch (openSides.get(0)) {
+			case SOUTH:
+			case NORTH:
+				logger.info("Setting gate open to NORTH-SOUTH");
+				setBlock(world, x, y, z, gate, 2, blockUpdateFlag);
+				break;
+			case EAST:
+			case WEST:
+				logger.info("Setting gate open to WEST");
+				setBlock(world, x, y, z, gate, 3, blockUpdateFlag);
+				break;
+			}
+		}
 	}
 
 	private void setFurnace(World world, int x, int y, int z, int i, int j,
@@ -792,8 +822,7 @@ public class ItemInstaTower extends Item {
 					setBlock(world, x + i, y, z + j, Blocks.fence);
 					break;
 				case '=':
-					setBlock(world, x + i, y, z + j, Blocks.fence_gate, 3,
-							blockUpdateFlag);
+					setFenceGate(world, x + i, y, z + j, i, j, blocks);
 					break;
 				default:
 					world.setBlockToAir(x + i, y, z + j);
