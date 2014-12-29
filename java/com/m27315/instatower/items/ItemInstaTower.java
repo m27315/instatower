@@ -82,6 +82,11 @@ public class ItemInstaTower extends Item {
 		if (!world.isRemote && side == 1
 				&& player.canPlayerEdit(x, y + 1, z, side, stack)) {
 
+			// Don't consume item, if in creative mode.
+			if (!player.capabilities.isCreativeMode) {
+				--stack.stackSize;
+			}
+
 			loadConfigFile();
 			numberOfBeacons = 0;
 			numberOfChests = 0;
@@ -90,16 +95,16 @@ public class ItemInstaTower extends Item {
 			// Direction: 0=South, 1=West, 2=North, 3=East
 			int facingDirection = MathHelper
 					.floor_double((double) ((player.rotationYaw * 4F) / 360F) + 0.5D) & 3;
-			InstaTower.logger.info("onItemUseFirst: stack=" + stack
-					+ "\n    x=" + x + ", y=" + y + ", z=" + z + ", side="
-					+ side + "\n    hitX=" + hitX + ", hitY=" + hitY
-					+ ", hitZ=" + hitZ);
-			InstaTower.logger.info("Look Vector=" + player.getLookVec()
-					+ ", CameraPitch=" + player.cameraPitch + ", CameraYaw="
-					+ player.cameraYaw + ", rotationPitch="
-					+ player.rotationPitch + ", rotationYaw="
-					+ player.rotationYaw + ", rotationHeadYaw="
-					+ player.rotationYawHead + ", facing=" + facingDirection);
+			// InstaTower.logger.info("onItemUseFirst: stack=" + stack
+			// + "\n    x=" + x + ", y=" + y + ", z=" + z + ", side="
+			// + side + "\n    hitX=" + hitX + ", hitY=" + hitY
+			// + ", hitZ=" + hitZ);
+			// InstaTower.logger.info("Look Vector=" + player.getLookVec()
+			// + ", CameraPitch=" + player.cameraPitch + ", CameraYaw="
+			// + player.cameraYaw + ", rotationPitch="
+			// + player.rotationPitch + ", rotationYaw="
+			// + player.rotationYaw + ", rotationHeadYaw="
+			// + player.rotationYawHead + ", facing=" + facingDirection);
 			// Offset structure to find red carpet entrance.
 			Vec3 offset = findRedCarpet(facingDirection);
 			x += (int) offset.xCoord;
@@ -140,10 +145,6 @@ public class ItemInstaTower extends Item {
 				spawnEntity(world, new EntityHorse(world), x, y, z);
 				// spawnEntity(world, new EntityPig(world), x, y, z);
 				// spawnEntity(world, new EntitySheep(world), x, y, z);
-			}
-			// Don't consume item, if in creative mode.
-			if (!player.capabilities.isCreativeMode) {
-				--stack.stackSize;
 			}
 			return true;
 		}
@@ -237,35 +238,35 @@ public class ItemInstaTower extends Item {
 	private List<Integer> findNeighbors(List<List<Character>> blocks,
 			char neighbor, int i, int j) {
 		List<Integer> neighbors = new ArrayList<Integer>();
-		logger.info("Finding " + neighbor + "-neighbors of for (i,j) = (" + i
-				+ "," + j + ") which is a: " + blocks.get(j).get(i));
+		// logger.info("Finding " + neighbor + "-neighbors of for (i,j) = (" + i
+		// + "," + j + ") which is a: " + blocks.get(j).get(i));
 		// SOUTH
-		logger.info("Checking south (j+1=" + (j + 1) + "): "
-				+ blocks.get(j + 1).get(i));
+		// logger.info("Checking south (j+1=" + (j + 1) + "): "
+		// + blocks.get(j + 1).get(i));
 		if (j < blocks.size() - 1 && blocks.get(j + 1).get(i) == neighbor) {
-			logger.info("Added SOUTH");
+			// logger.info("Added SOUTH");
 			neighbors.add(SOUTH);
 		}
 		// WEST
-		logger.info("Checking west (i-1=" + (i - 1) + "): "
-				+ blocks.get(j).get(i - 1));
+		// logger.info("Checking west (i-1=" + (i - 1) + "): "
+		// + blocks.get(j).get(i - 1));
 		if (i > 0 && blocks.get(j).get(i - 1) == neighbor) {
-			logger.info("Added WEST");
+			// logger.info("Added WEST");
 			neighbors.add(WEST);
 		}
 		// NORTH
-		logger.info("Checking north (j-1=" + (j - 1) + "): "
-				+ blocks.get(j - 1).get(i));
+		// logger.info("Checking north (j-1=" + (j - 1) + "): "
+		// + blocks.get(j - 1).get(i));
 		if (j > 0 && blocks.get(j - 1).get(i) == neighbor) {
-			logger.info("Added NORTH");
+			// logger.info("Added NORTH");
 			neighbors.add(NORTH);
 		}
 		// EAST
-		logger.info("Checking east (i+1=" + (i + 1) + "): "
-				+ blocks.get(j).get(i + 1));
+		// logger.info("Checking east (i+1=" + (i + 1) + "): "
+		// + blocks.get(j).get(i + 1));
 		if (i < blocks.get(j).size() - 1
 				&& blocks.get(j).get(i + 1) == neighbor) {
-			logger.info("Added EAST");
+			// logger.info("Added EAST");
 			neighbors.add(EAST);
 		}
 		return neighbors;
@@ -321,24 +322,24 @@ public class ItemInstaTower extends Item {
 		if (stones.isEmpty()) {
 			List<Integer> openSides = findOpenSides(blocks, i, j);
 			if (openSides.isEmpty()) {
-				logger.info("Setting default anvil - no metadata.");
+				// logger.info("Setting default anvil - no metadata.");
 				setBlock(world, x, y, z, anvil);
 			} else {
 				switch (openSides.get(0)) {
 				case SOUTH:
-					logger.info("Setting anvil open to SOUTH");
+					// logger.info("Setting anvil open to SOUTH");
 					setBlock(world, x, y, z, anvil, 1, blockUpdateFlag);
 					break;
 				case WEST:
-					logger.info("Setting anvil open to WEST");
+					// logger.info("Setting anvil open to WEST");
 					setBlock(world, x, y, z, anvil, 2, blockUpdateFlag);
 					break;
 				case NORTH:
-					logger.info("Setting anvil open to NORTH");
+					// logger.info("Setting anvil open to NORTH");
 					setBlock(world, x, y, z, anvil, 2, blockUpdateFlag);
 					break;
 				case EAST:
-					logger.info("Setting anvil open to EAST");
+					// logger.info("Setting anvil open to EAST");
 					setBlock(world, x, y, z, anvil, 0, blockUpdateFlag);
 					break;
 				}
@@ -451,19 +452,19 @@ public class ItemInstaTower extends Item {
 			}
 			switch (openSides.get(0)) {
 			case SOUTH:
-				logger.info("Setting chest open to SOUTH");
+				// logger.info("Setting chest open to SOUTH");
 				return (TileEntityChest) setBlock(world, x, y, z, chest, 3,
 						blockUpdateFlag);
 			case WEST:
-				logger.info("Setting chest open to WEST");
+				// logger.info("Setting chest open to WEST");
 				return (TileEntityChest) setBlock(world, x, y, z, chest, 4,
 						blockUpdateFlag);
 			case NORTH:
-				logger.info("Setting chest open to NORTH");
+				// logger.info("Setting chest open to NORTH");
 				return (TileEntityChest) setBlock(world, x, y, z, chest, 2,
 						blockUpdateFlag);
 			case EAST:
-				logger.info("Setting chest open to EAST");
+				// logger.info("Setting chest open to EAST");
 				return (TileEntityChest) setBlock(world, x, y, z, chest, 5,
 						blockUpdateFlag);
 			}
@@ -475,28 +476,28 @@ public class ItemInstaTower extends Item {
 			List<Integer> openSides2 = null;
 			switch (otherPiece.get(0)) {
 			case SOUTH:
-				logger.info("Other chest half to SOUTH");
+				// logger.info("Other chest half to SOUTH");
 			case NORTH:
-				logger.info("Other chest half to NORTH");
+				// logger.info("Other chest half to NORTH");
 				if (openSides.contains(WEST)) {
-					logger.info("Setting chest open to WEST");
+					// logger.info("Setting chest open to WEST");
 					return (TileEntityChest) setBlock(world, x, y, z, chest, 4,
 							blockUpdateFlag);
 				} else {
-					logger.info("Setting chest open to EAST");
+					// logger.info("Setting chest open to EAST");
 					return (TileEntityChest) setBlock(world, x, y, z, chest, 5,
 							blockUpdateFlag);
 				}
 			case WEST:
-				logger.info("Other chest half to WEST");
+				// logger.info("Other chest half to WEST");
 			case EAST:
-				logger.info("Other chest half to EAST");
+				// logger.info("Other chest half to EAST");
 				if (openSides.contains(SOUTH)) {
-					logger.info("Setting chest open to SOUTH");
+					// logger.info("Setting chest open to SOUTH");
 					return (TileEntityChest) setBlock(world, x, y, z, chest, 3,
 							blockUpdateFlag);
 				} else {
-					logger.info("Setting chest open to NORTH");
+					// logger.info("Setting chest open to NORTH");
 					return (TileEntityChest) setBlock(world, x, y, z, chest, 2,
 							blockUpdateFlag);
 				}
@@ -574,36 +575,33 @@ public class ItemInstaTower extends Item {
 	private void setDoor(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 		Block door = Blocks.iron_door;
-		List<Integer> carpet = findNeighbors(blocks, 'r', i, j);
-		if (carpet.isEmpty()) {
-			ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
+		List<Integer> panel = findNeighbors(blocks, 'p', i, j);
+		// logger.info("setDoor: (x,y,z)=(" + x + "," + y + "," + z +
+		// "), (i,j)=("
+		// + i + "," + j + "), " + panel.size() + " wooden-panel sides.");
+		if (panel.isEmpty()) {
+			// logger.info("Setting basic door with no metadata and unknown orientation.");
+			setBlock(world, x, y, z, door, 0, blockUpdateFlag);
 		} else {
-			switch (carpet.get(0)) {
+			switch (panel.get(0)) {
 			case SOUTH:
-				logger.info("Setting door open to SOUTH");
-				//ItemDoor.placeDoorBlock(world, x, y, z, 3, door);
-				setBlock(world, x, y, z, door, 3, blockUpdateFlag);
+				// logger.info("Setting door open to SOUTH");
+				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
 				break;
 			case WEST:
-				logger.info("Setting door open to WEST");
-//				ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
-				setBlock(world, x, y, z, door, 0, blockUpdateFlag);
+				// logger.info("Setting door open to WEST");
+				ItemDoor.placeDoorBlock(world, x, y, z, 2, door);
 				break;
 			case NORTH:
-				logger.info("Setting door open to NORTH");
-//				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
-				setBlock(world, x, y, z, door, 1, blockUpdateFlag);
+				// logger.info("Setting door open to NORTH");
+				ItemDoor.placeDoorBlock(world, x, y, z, 3, door);
 				break;
 			case EAST:
-				logger.info("Setting door open to EAST");
-//				ItemDoor.placeDoorBlock(world, x, y, z, 2, door);
-				setBlock(world, x, y, z, door, 2, blockUpdateFlag);
+				// logger.info("Setting door open to EAST");
+				ItemDoor.placeDoorBlock(world, x, y, z, 0, door);
 				break;
 			}
 		}
-		world.notifyBlockChange(x, y, z, door);
-		setBlock(world, x, y + 1, z, door, 8, blockUpdateFlag);
-		world.notifyBlockChange(x, y + 1, z, door);
 	}
 
 	private void setFenceGate(World world, int x, int y, int z, int i, int j,
@@ -611,22 +609,22 @@ public class ItemInstaTower extends Item {
 
 		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
 		Block gate = Blocks.fence_gate;
-		logger.info("setgate: (x,y,z)=(" + x + "," + y + "," + z
-				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
-				+ " open sides.");
+		// logger.info("setgate: (x,y,z)=(" + x + "," + y + "," + z
+		// + "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+		// + " open sides.");
 		if (openSides.isEmpty()) {
-			logger.info("Setting default gate - no metadata.");
+			// logger.info("Setting default gate - no metadata.");
 			setBlock(world, x, y, z, gate);
 		} else {
 			switch (openSides.get(0)) {
 			case SOUTH:
 			case NORTH:
-				logger.info("Setting gate open to NORTH-SOUTH");
+				// logger.info("Setting gate open to NORTH-SOUTH");
 				setBlock(world, x, y, z, gate, 2, blockUpdateFlag);
 				break;
 			case EAST:
 			case WEST:
-				logger.info("Setting gate open to WEST");
+				// logger.info("Setting gate open to WEST");
 				setBlock(world, x, y, z, gate, 3, blockUpdateFlag);
 				break;
 			}
@@ -638,28 +636,28 @@ public class ItemInstaTower extends Item {
 
 		List<Integer> openSides = findOpenSides(blocks, i, j);
 		Block furnace = Blocks.furnace;
-		logger.info("setFurnace: (x,y,z)=(" + x + "," + y + "," + z
-				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
-				+ " open sides.");
+		// logger.info("setFurnace: (x,y,z)=(" + x + "," + y + "," + z
+		// + "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+		// + " open sides.");
 		if (openSides.isEmpty()) {
-			logger.info("Setting default furnace - no metadata.");
+			// logger.info("Setting default furnace - no metadata.");
 			setBlock(world, x, y, z, furnace);
 		} else {
 			switch (openSides.get(0)) {
 			case SOUTH:
-				logger.info("Setting furnace open to SOUTH");
+				// logger.info("Setting furnace open to SOUTH");
 				setBlock(world, x, y, z, furnace, 3, blockUpdateFlag);
 				break;
 			case WEST:
-				logger.info("Setting furnace open to WEST");
+				// logger.info("Setting furnace open to WEST");
 				setBlock(world, x, y, z, furnace, 4, blockUpdateFlag);
 				break;
 			case NORTH:
-				logger.info("Setting furnace open to NORTH");
+				// logger.info("Setting furnace open to NORTH");
 				setBlock(world, x, y, z, furnace, 2, blockUpdateFlag);
 				break;
 			case EAST:
-				logger.info("Setting furnace open to EAST");
+				// logger.info("Setting furnace open to EAST");
 				setBlock(world, x, y, z, furnace, 5, blockUpdateFlag);
 				break;
 			}
@@ -669,35 +667,35 @@ public class ItemInstaTower extends Item {
 	private void setLadder(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
 		List<Integer> stones = findNeighbors(blocks, 'S', i, j);
-		logger.info("setLadder: (x,y,z)=(" + x + "," + y + "," + z
-				+ "), (i,j)=(" + i + "," + j + "), " + stones.size()
-				+ " neighboring stones.");
+		// logger.info("setLadder: (x,y,z)=(" + x + "," + y + "," + z
+		// + "), (i,j)=(" + i + "," + j + "), " + stones.size()
+		// + " neighboring stones.");
 		if (!stones.isEmpty()) {
 			Block ldr = Blocks.ladder;
 			if (stones.size() == 4) {
 				stones = findNeighbors(prevBlocks, 'S', i, j);
-				logger.info("setLadder: surrouned by stones. Checking previous layer. Found "
-						+ stones.size()
-						+ " neighboring stones on the layer below.");
+				// logger.info("setLadder: surrouned by stones. Checking previous layer. Found "
+				// + stones.size()
+				// + " neighboring stones on the layer below.");
 				if (stones.isEmpty()) {
 					return;
 				}
 			}
 			switch (stones.get(0)) {
 			case SOUTH:
-				logger.info("Setting ladder with block backing to the SOUTH");
+				// logger.info("Setting ladder with block backing to the SOUTH");
 				setBlock(world, x, y, z, ldr, 2, blockUpdateFlag);
 				break;
 			case WEST:
-				logger.info("Setting ladder with block backing to the WEST");
+				// logger.info("Setting ladder with block backing to the WEST");
 				setBlock(world, x, y, z, ldr, 5, blockUpdateFlag);
 				break;
 			case NORTH:
-				logger.info("Setting ladder with block backing to the NORTH");
+				// logger.info("Setting ladder with block backing to the NORTH");
 				setBlock(world, x, y, z, ldr, 3, blockUpdateFlag);
 				break;
 			case EAST:
-				logger.info("Setting ladder with block backing to the EAST");
+				// logger.info("Setting ladder with block backing to the EAST");
 				setBlock(world, x, y, z, ldr, 4, blockUpdateFlag);
 				break;
 			}
@@ -823,6 +821,9 @@ public class ItemInstaTower extends Item {
 					break;
 				case '=':
 					setFenceGate(world, x + i, y, z + j, i, j, blocks);
+					break;
+				case '.':
+					// Do nothing - NO-OP.
 					break;
 				default:
 					world.setBlockToAir(x + i, y, z + j);

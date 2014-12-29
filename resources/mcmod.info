@@ -3,7 +3,7 @@
   "modid": "instatower",
   "name": "InstaTower",
   "description": "Jump start exploration with InstaTower.",
-  "version": "0.01",
+  "version": "1.1.1",
   "mcversion": "${mcversion}",
   "url": "http://www.trevorbowen.com",
   "updateUrl": "",
