@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,11 +48,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemInstaTower extends Item {
 	private String name = "iteminstatower";
+	private int groundLevel = 0;
 	private int numberOfBeacons = 0;
 	private int numberOfChests = 0;
 	private int blockUpdateFlag = 3;
 	public static Logger logger;
-	private static File configFile;
 	public static HashMap<String, List<List<Character>>> layerDefs;
 	public static List<String> layerStack;
 
@@ -63,7 +64,6 @@ public class ItemInstaTower extends Item {
 
 	public ItemInstaTower(FMLPreInitializationEvent event, Logger logger) {
 		this.logger = logger;
-		configFile = event.getSuggestedConfigurationFile();
 		this.setMaxStackSize(64);
 		this.setUnlocalizedName(Constants.MODID + '_' + name);
 		this.setCreativeTab(CreativeTabs.tabMaterials);
@@ -108,9 +108,10 @@ public class ItemInstaTower extends Item {
 			// Offset structure to find red carpet entrance.
 			Vec3 offset = findRedCarpet(facingDirection);
 			x += (int) offset.xCoord;
+			y -= groundLevel;
 			z += (int) offset.zCoord;
 			// Prepare site - assume first layer is biggest.
-			Block dirt = Blocks.dirt;
+			Block stone = Blocks.stone;
 			List<List<Character>> blocks = layerDefs.get(layerStack.get(0));
 			// Rotate structure according to direction faced.
 			blocks = rotateBlocks(blocks, facingDirection);
@@ -124,7 +125,7 @@ public class ItemInstaTower extends Item {
 					// Build up with dirt between this block down to ground.
 					for (int k = y - 1; k >= 0; k--) {
 						if (world.isAirBlock(x + i, k, z + j)) {
-							setBlock(world, x + i, k, z + j, dirt);
+							setBlock(world, x + i, k, z + j, stone);
 						} else {
 							break;
 						}
@@ -901,52 +902,32 @@ public class ItemInstaTower extends Item {
 	}
 
 	private void loadConfigFile() {
-		logger.info("Config File = " + configFile.getPath());
 
+		InputStream is = null;
 		BufferedReader in = null;
 		Pattern isComment = Pattern.compile("^\\s*#");
 		Pattern isLayer = Pattern.compile("^\\s*Layer\\s*(.*?):?$");
 		Matcher m = null;
 		List<List<Character>> rows = null;
 		List<Character> row = null;
-		int x, y;
+		int x, y, layerNumber;
 		String line, layer = null;
+		boolean foundGroundLevel = false;
 
 		layerDefs = new HashMap<String, List<List<Character>>>();
 		layerStack = new ArrayList<String>();
 
 		try {
-			in = new BufferedReader(new FileReader(configFile));
-		} catch (FileNotFoundException e) {
-			logger.warn("(W) Config file did not exist, "
-					+ configFile.getPath());
-			logger.warn("(W) Setting config file to default!");
-			InputStream is = InstaTower.class.getResourceAsStream("/assets/"
+			is = InstaTower.class.getResourceAsStream("/assets/"
 					+ Constants.MODID + "/schematics/instatower.cfg");
-			try {
-				Files.asByteSink(configFile).writeFrom(is);
-				is.close();
-				try {
-					in = new BufferedReader(new FileReader(configFile));
-				} catch (FileNotFoundException e1) {
-					logger.error("(E) Unable to open config file after resetting, "
-							+ configFile.getPath());
-					logger.catching(e1);
-					logger.error(e1.getStackTrace());
-				}
-			} catch (IOException e1) {
-				logger.error("(E) Unable to reset config, "
-						+ configFile.getPath() + ", with default.");
-				logger.catching(e);
-				logger.error(e.getStackTrace());
-			}
-		}
+			in = new BufferedReader(new InputStreamReader(is));
 
-		try {
+			layerNumber = 0;
 			while ((line = in.readLine()) != null) {
 				if (!isComment.matcher(line).matches()) {
 					m = isLayer.matcher(line);
 					if (m.matches()) {
+						layerNumber++;
 						layer = m.group(1);
 						layerStack.add(layer);
 						if (!layerDefs.containsKey(layer)) {
@@ -956,8 +937,11 @@ public class ItemInstaTower extends Item {
 						}
 					} else if (layer != null) {
 						row = new ArrayList<Character>();
-						for (char c : line.toCharArray())
+						for (char c : line.toCharArray()) {
 							row.add(c);
+							if (c == 'd')
+								groundLevel = layerNumber;
+						}
 						rows.add(row);
 					}
 
@@ -976,18 +960,26 @@ public class ItemInstaTower extends Item {
 				if (sz > maxNumberOfRows)
 					maxNumberOfRows = sz;
 			}
-			// Normalize: Pad all rows for all layers with AIR to maximum row
-			// length.
-			for (List<List<Character>> rs : layerDefs.values()) {
+			// Normalize: Pad all rows for all layers with AIR (or STONE beneath
+			// ground level) to maximum row length.
+			layerNumber = 0;
+			for (String layerName : layerStack) {
+				layerNumber++;
+				List<List<Character>> rs = layerDefs.get(layerName);
 				for (int j = rs.size(); j < maxNumberOfRows; j++) {
 					rs.add((List) new ArrayList<Blocks>());
 				}
 				for (List<Character> r : rs) {
 					for (int i = r.size(); i < maxRowLength; i++) {
-						r.add(' ');
+						if (layerNumber < groundLevel) {
+							r.add('s');
+						} else {
+							r.add(' ');
+						}
 					}
 				}
 			}
+			if (groundLevel > 0) groundLevel--;
 		} catch (IOException e) {
 			logger.catching(e);
 			logger.error(e.getStackTrace());
@@ -995,6 +987,11 @@ public class ItemInstaTower extends Item {
 			if (in != null) {
 				try {
 					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				try {
+					is.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
