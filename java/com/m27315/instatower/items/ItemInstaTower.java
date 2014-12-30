@@ -28,6 +28,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.item.EntityMinecartEmpty;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.passive.EntityHorse;
@@ -132,14 +134,39 @@ public class ItemInstaTower extends Item {
 					}
 				}
 			}
-			// Lay down each layer
+			// Lay down each layer - basic blocks first!
 			for (int n = 0; n < layerStack.size(); n++) {
 				String layer = layerStack.get(n);
 				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-				setLayer(world, x, y + n, z, blocks, prevBlocks);
+				setLayer1(world, x, y + n, z, blocks, prevBlocks);
+				prevBlocks = blocks;
+			}
+			// Lay down each layer - dependent blocks next!
+			prevBlocks = null;
+			for (int n = 0; n < layerStack.size(); n++) {
+				String layer = layerStack.get(n);
+				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
+				setLayer2(world, x, y + n, z, blocks, prevBlocks);
 				prevBlocks = blocks;
 			}
 			// Have some animals! Yee-haw!
+			x -= (int) offset.xCoord;
+			y += groundLevel;
+			z -= (int) offset.zCoord;
+			switch (facingDirection) {
+			case SOUTH:
+				z -= 2;
+				break;
+			case WEST:
+				x += 2;
+				break;
+			case NORTH:
+				z += 2;
+				break;
+			case EAST:
+				x -= 2;
+				break;
+			}
 			for (int n = 0; n < 2; n++) {
 				spawnEntity(world, new EntityChicken(world), x, y, z);
 				spawnEntity(world, new EntityCow(world), x, y, z);
@@ -701,10 +728,183 @@ public class ItemInstaTower extends Item {
 				break;
 			}
 		}
-
 	}
 
-	private void setLayer(World world, int x, int y, int z,
+	private void damBlock(World world, int x, int y, int z) {
+		Block block = world.getBlock(x, y, z);
+		if (block.equals(Blocks.water) || block.equals(Blocks.lava)
+				|| block.equals(Blocks.gravel) || block.equals(Blocks.sand)
+				|| block.equals(Blocks.dirt)) {
+			setBlock(world, x, y, z, Blocks.stone);
+		}
+	}
+
+	private void setTunnel(World world, int x, int y, int z, int i, int j,
+			List<List<Character>> blocks) {
+		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
+		logger.info("setTunnel: (x,y,z)=(" + x + "," + y + "," + z
+				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+				+ " open sides.");
+		int direction = EAST;
+		int stepMeta = 1;
+		int railMeta = 3;
+		int poweredMeta = 11;
+		int torchMeta = 1;
+		if (!openSides.isEmpty()) {
+			switch (openSides.get(0)) {
+			case SOUTH:
+				direction = NORTH;
+				stepMeta = 2;
+				railMeta = 5;
+				poweredMeta = 13;
+				torchMeta = 3;
+				break;
+			case WEST:
+				direction = EAST;
+				stepMeta = 1;
+				railMeta = 3;
+				poweredMeta = 11;
+				torchMeta = 2;
+				break;
+			case NORTH:
+				direction = SOUTH;
+				stepMeta = 3;
+				railMeta = 4;
+				poweredMeta = 12;
+				torchMeta = 4;
+				break;
+			case EAST:
+				direction = WEST;
+				stepMeta = 0;
+				railMeta = 2;
+				poweredMeta = 10;
+				torchMeta = 1;
+				break;
+			}
+		}
+		int numSteps = 0;
+		if ((direction == NORTH) || (direction == SOUTH)) {
+			int zStep = (direction == SOUTH) ? 1 : -1;
+			setBlock(world, x - 1, y, z - zStep, Blocks.golden_rail);
+			setBlock(world, x + 1, y, z - zStep, Blocks.golden_rail);
+			spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
+			spawnEntity(world, new EntityMinecartEmpty(world), x + 1, y, z);
+			for (; y > 10; y--) {
+				for (int u = 1; u < 3; u++) {
+					setBlock(world, x - u, y - 1, z, Blocks.stonebrick);
+					setBlock(world, x + u, y - 1, z, Blocks.stonebrick);
+				}
+				setBlock(world, x, y - 1, z, Blocks.stone_brick_stairs,
+						stepMeta, blockUpdateFlag);
+				for (int v = 0; v < 4; v++) {
+					damBlock(world, x - 3, y + v, z);
+					for (int u = -2; u < 3; u++) {
+						world.setBlockToAir(x + u, y + v, z);
+					}
+					damBlock(world, x + 3, y + v, z);
+				}
+				for (int u = -3; u < 4; u++) {
+					damBlock(world, x + u, y + 4, z);
+				}
+				switch (numSteps++ % 5) {
+				case 1:
+					for (int v = 0; v < 4; v++) {
+						setBlock(world, x - 2, y + v, z,
+								Blocks.nether_brick_fence);
+						setBlock(world, x + 2, y + v, z,
+								Blocks.nether_brick_fence);
+					}
+					for (int u = -2; u < 3; u++) {
+						setBlock(world, x + u, y + 4, z, Blocks.nether_brick);
+					}
+					setBlock(world, x - 2, y + 4, z - zStep, Blocks.torch,
+							torchMeta, blockUpdateFlag);
+					setBlock(world, x + 2, y + 4, z - zStep, Blocks.torch,
+							torchMeta, blockUpdateFlag);
+				case 3:
+					setBlock(world, x - 1, y, z, Blocks.rail, railMeta,
+							blockUpdateFlag);
+					setBlock(world, x + 1, y, z, Blocks.rail, railMeta,
+							blockUpdateFlag);
+					break;
+				case 0:
+				case 2:
+				case 4:
+					if (numSteps > 1) {
+						setBlock(world, x - 2, y, z, Blocks.redstone_torch);
+						setBlock(world, x + 2, y, z, Blocks.redstone_torch);
+					}
+					setBlock(world, x - 1, y, z, Blocks.golden_rail,
+							poweredMeta, blockUpdateFlag);
+					setBlock(world, x + 1, y, z, Blocks.golden_rail,
+							poweredMeta, blockUpdateFlag);
+					break;
+				}
+				z += zStep;
+			}
+		} else {
+			int xStep = (direction == EAST) ? 1 : -1;
+			setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
+			setBlock(world, x - xStep, y, z + 1, Blocks.golden_rail);
+			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z - 1);
+			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z + 1);
+			for (; y > 10; y--) {
+				for (int w = 1; w < 3; w++) {
+					setBlock(world, x, y - 1, z - w, Blocks.stonebrick);
+					setBlock(world, x, y - 1, z + w, Blocks.stonebrick);
+				}
+				setBlock(world, x, y - 1, z, Blocks.stone_brick_stairs,
+						stepMeta, blockUpdateFlag);
+				for (int v = 0; v < 4; v++) {
+					damBlock(world, x, y + v, z - 3);
+					for (int w = -2; w < 3; w++) {
+						world.setBlockToAir(x, y + v, z + w);
+					}
+					damBlock(world, x, y + v, z + 3);
+				}
+				for (int w = -3; w < 4; w++) {
+					damBlock(world, x, y + 4, z + w);
+				}
+				switch (numSteps++ % 5) {
+				case 1:
+					for (int v = 0; v < 4; v++) {
+						setBlock(world, x, y + v, z - 2,
+								Blocks.nether_brick_fence);
+						setBlock(world, x, y + v, z + 2,
+								Blocks.nether_brick_fence);
+					}
+					for (int w = -2; w < 3; w++) {
+						setBlock(world, x, y + 4, z + w, Blocks.nether_brick);
+					}
+					setBlock(world, x - xStep, y + 4, z - 2, Blocks.torch,
+							torchMeta, blockUpdateFlag);
+					setBlock(world, x - xStep, y + 4, z + 2, Blocks.torch,
+							torchMeta, blockUpdateFlag);
+				case 3:
+					setBlock(world, x, y, z - 1, Blocks.rail, railMeta,
+							blockUpdateFlag);
+					setBlock(world, x, y, z + 1, Blocks.rail, railMeta,
+							blockUpdateFlag);
+					break;
+				case 0:
+				case 2:
+				case 4:
+					if (numSteps > 1) {
+						setBlock(world, x, y, z - 2, Blocks.redstone_torch);
+						setBlock(world, x, y, z + 2, Blocks.redstone_torch);
+					}
+					setBlock(world, x, y, z - 1, Blocks.golden_rail,
+							poweredMeta, blockUpdateFlag);
+					setBlock(world, x, y, z + 1, Blocks.golden_rail,
+							poweredMeta, blockUpdateFlag);
+					break;
+				}
+				x += xStep;
+			}
+		}
+	}
+
+	private void setLayer1(World world, int x, int y, int z,
 			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
 
 		// place everything but torches and doors
@@ -806,6 +1006,9 @@ public class ItemInstaTower extends Item {
 				case 't':
 					// Set on next pass.
 					break;
+				case 'T':
+					// Set on next pass.
+					break;
 				case 'u':
 					setButton(world, x + i, y, z + j, i, j, blocks);
 					break;
@@ -832,6 +1035,11 @@ public class ItemInstaTower extends Item {
 				}
 			}
 		}
+	}
+
+	private void setLayer2(World world, int x, int y, int z,
+			List<List<Character>> blocks, List<List<Character>> prevBlocks) {
+
 		// place torches and doors
 		for (int j = 0; j < blocks.size(); j++) {
 			List<Character> row = blocks.get(j);
@@ -841,11 +1049,18 @@ public class ItemInstaTower extends Item {
 				case 'c':
 					setChest(world, x + i, y, z + j, i, j, blocks);
 					break;
+				case 'D':
+					setDoor(world, x + i, y, z + j, i, j, blocks);
+					break;
 				case 'F':
 					setFurnace(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'l':
 					setLadder(world, x + i, y, z + j, i, j, blocks, prevBlocks);
+					break;
+				case 'p':
+					setBlock(world, x + i, y, z + j,
+							Blocks.wooden_pressure_plate, 0, blockUpdateFlag);
 					break;
 				case 't':
 					if (world.isSideSolid(x + i, y - 1, z + j,
@@ -855,12 +1070,8 @@ public class ItemInstaTower extends Item {
 						setBlock(world, x + i, y, z + j, Blocks.torch);
 					}
 					break;
-				case 'p':
-					setBlock(world, x + i, y, z + j,
-							Blocks.wooden_pressure_plate, 0, blockUpdateFlag);
-					break;
-				case 'D':
-					setDoor(world, x + i, y, z + j, i, j, blocks);
+				case 'T':
+					setTunnel(world, x + i, y, z + j, i, j, blocks);
 					break;
 				default:
 					// Do nothing.
@@ -872,7 +1083,7 @@ public class ItemInstaTower extends Item {
 	}
 
 	private Entity spawnEntity(World world, Entity entity, int x, int y, int z) {
-		entity.setPosition(x + 4, y + 3, z + 4);
+		entity.setPosition(x, y + 1, z);
 		world.spawnEntityInWorld(entity);
 		return entity;
 	}
@@ -979,7 +1190,8 @@ public class ItemInstaTower extends Item {
 					}
 				}
 			}
-			if (groundLevel > 0) groundLevel--;
+			if (groundLevel > 0)
+				groundLevel--;
 		} catch (IOException e) {
 			logger.catching(e);
 			logger.error(e.getStackTrace());
