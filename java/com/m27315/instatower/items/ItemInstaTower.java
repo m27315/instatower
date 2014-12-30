@@ -155,16 +155,16 @@ public class ItemInstaTower extends Item {
 			z -= (int) offset.zCoord;
 			switch (facingDirection) {
 			case SOUTH:
-				z -= 2;
+				z -= 3;
 				break;
 			case WEST:
-				x += 2;
+				x += 3;
 				break;
 			case NORTH:
-				z += 2;
+				z += 3;
 				break;
 			case EAST:
-				x -= 2;
+				x -= 3;
 				break;
 			}
 			for (int n = 0; n < 2; n++) {
@@ -750,6 +750,7 @@ public class ItemInstaTower extends Item {
 		int railMeta = 3;
 		int poweredMeta = 11;
 		int torchMeta = 1;
+		int redTorchMeta = 1;
 		if (!openSides.isEmpty()) {
 			switch (openSides.get(0)) {
 			case SOUTH:
@@ -758,6 +759,7 @@ public class ItemInstaTower extends Item {
 				railMeta = 5;
 				poweredMeta = 13;
 				torchMeta = 3;
+				redTorchMeta = 4;
 				break;
 			case WEST:
 				direction = EAST;
@@ -765,6 +767,7 @@ public class ItemInstaTower extends Item {
 				railMeta = 3;
 				poweredMeta = 11;
 				torchMeta = 2;
+				redTorchMeta = 1;
 				break;
 			case NORTH:
 				direction = SOUTH;
@@ -772,6 +775,7 @@ public class ItemInstaTower extends Item {
 				railMeta = 4;
 				poweredMeta = 12;
 				torchMeta = 4;
+				redTorchMeta = 3;
 				break;
 			case EAST:
 				direction = WEST;
@@ -779,6 +783,7 @@ public class ItemInstaTower extends Item {
 				railMeta = 2;
 				poweredMeta = 10;
 				torchMeta = 1;
+				redTorchMeta = 2;
 				break;
 			}
 		}
@@ -831,8 +836,10 @@ public class ItemInstaTower extends Item {
 				case 2:
 				case 4:
 					if (numSteps > 1) {
-						setBlock(world, x - 2, y, z, Blocks.redstone_torch);
-						setBlock(world, x + 2, y, z, Blocks.redstone_torch);
+						setBlock(world, x - 2, y, z, Blocks.redstone_torch,
+								redTorchMeta, blockUpdateFlag);
+						setBlock(world, x + 2, y, z, Blocks.redstone_torch,
+								redTorchMeta, blockUpdateFlag);
 					}
 					setBlock(world, x - 1, y, z, Blocks.golden_rail,
 							poweredMeta, blockUpdateFlag);
@@ -890,8 +897,10 @@ public class ItemInstaTower extends Item {
 				case 2:
 				case 4:
 					if (numSteps > 1) {
-						setBlock(world, x, y, z - 2, Blocks.redstone_torch);
-						setBlock(world, x, y, z + 2, Blocks.redstone_torch);
+						setBlock(world, x, y, z - 2, Blocks.redstone_torch,
+								redTorchMeta, blockUpdateFlag);
+						setBlock(world, x, y, z + 2, Blocks.redstone_torch,
+								redTorchMeta, blockUpdateFlag);
 					}
 					setBlock(world, x, y, z - 1, Blocks.golden_rail,
 							poweredMeta, blockUpdateFlag);
