@@ -59,10 +59,12 @@ public class ItemDiviningRod extends Item {
 	}
 
 	private void reportMetaData(World w, int x, int y, int z) {
-		logger.info("[" + name + "]: Coords (x,y,z)=" + x + "," + y
-				+ "," + z + "; Metadata=" + w.getBlockMetadata(x, y, z)
-				+ "; Name=" + w.getBlock(x, y, z).getLocalizedName() + "; Id="
-				+ Block.getIdFromBlock(w.getBlock(x, y, z)));
+		Block b = w.getBlock(x, y, z);
+		logger.info("[" + name + "]: Coords (x,y,z)=" + x + "," + y + "," + z
+				+ "; Metadata=" + w.getBlockMetadata(x, y, z)
+				+ "; Localized-Name=" + b.getLocalizedName()
+				+ "; Unlocalized-Name=" + b.getUnlocalizedName() + "; Id="
+				+ Block.getIdFromBlock(b));
 	}
 
 }

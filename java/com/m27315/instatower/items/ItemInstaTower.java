@@ -732,10 +732,25 @@ public class ItemInstaTower extends Item {
 
 	private void damBlock(World world, int x, int y, int z) {
 		Block block = world.getBlock(x, y, z);
-		if (block.equals(Blocks.water) || block.equals(Blocks.lava)
-				|| block.equals(Blocks.gravel) || block.equals(Blocks.sand)
-				|| block.equals(Blocks.dirt)) {
-			setBlock(world, x, y, z, Blocks.stone);
+		String name = block.getLocalizedName();
+		if (!(name.endsWith(" Ore") || world.isAirBlock(x, y, z))) {
+			setBlock(world, x, y, z, Blocks.stonebrick);
+		}
+	}
+
+	private void solidifyBlock(World world, int x, int y, int z) {
+		Block block = world.getBlock(x, y, z);
+		String name = block.getLocalizedName();
+		if (!name.endsWith(" Ore")) {
+			setBlock(world, x, y, z, Blocks.stonebrick);
+		}
+	}
+
+	private void vaporizeBlock(World world, int x, int y, int z) {
+		Block block = world.getBlock(x, y, z);
+		String name = block.getLocalizedName();
+		if (!(name.endsWith(" Ore") || world.isAirBlock(x, y, z))) {
+			world.setBlockToAir(x, y, z);
 		}
 	}
 
@@ -804,7 +819,7 @@ public class ItemInstaTower extends Item {
 				for (int v = 0; v < 4; v++) {
 					damBlock(world, x - 3, y + v, z);
 					for (int u = -2; u < 3; u++) {
-						world.setBlockToAir(x + u, y + v, z);
+						vaporizeBlock(world, x + u, y + v, z);
 					}
 					damBlock(world, x + 3, y + v, z);
 				}
@@ -849,6 +864,61 @@ public class ItemInstaTower extends Item {
 				}
 				z += zStep;
 			}
+			for (int w = 0; w < 2; w++) {
+				for (int u = -2; u < 3; u++) {
+					setBlock(world, x + u, y - 1, z + w * zStep,
+							Blocks.stonebrick);
+				}
+				for (int v = 0; v < 4; v++) {
+					damBlock(world, x - 3, y + v, z + w * zStep);
+					for (int u = -2; u < 3; u++) {
+						vaporizeBlock(world, x + u, y + v, z + w * zStep);
+					}
+					damBlock(world, x + 3, y + v, z + w * zStep);
+				}
+				for (int u = -3; u < 4; u++) {
+					damBlock(world, x + u, y + 4, z + w * zStep);
+				}
+				setBlock(world, x + 1, y, z + w * zStep, Blocks.rail);
+				setBlock(world, x - 1, y, z + w * zStep, Blocks.rail);
+			}
+			for (int u = -2; u < 3; u++) {
+				for (int v = -1; v < 4; v++) {
+					damBlock(world, x + u, y + v, z + 2 * zStep);
+				}
+			}
+			setBlock(world, x + 2, y, z + zStep, Blocks.rail);
+			setBlock(world, x - 2, y, z + zStep, Blocks.rail);
+			for (int f = -1; f <= 1; f += 2) {
+				for (int u = 3; u < 1000; u++) {
+					solidifyBlock(world, x + u * f, y - 1, z);
+					solidifyBlock(world, x + u * f, y - 1, z + zStep);
+					solidifyBlock(world, x + u * f, y + 4, z - zStep);
+					solidifyBlock(world, x + u * f, y + 4, z);
+					solidifyBlock(world, x + u * f, y + 4, z + zStep);
+					solidifyBlock(world, x + u * f, y + 4, z + zStep + zStep);
+					for (int v = 0; v < 4; v++) {
+						damBlock(world, x + u * f, y + v, z - zStep);
+						vaporizeBlock(world, x + u * f, y + v, z);
+						vaporizeBlock(world, x + u * f, y + v, z + zStep);
+						damBlock(world, x + u * f, y + v, z + zStep + zStep);
+					}
+					switch (u % 5) {
+					case 1:
+					case 3:
+						setBlock(world, x + u * f, y, z + zStep,
+								Blocks.golden_rail);
+						setBlock(world, x + u * f, y, z, Blocks.redstone_torch,
+								5, blockUpdateFlag);
+						break;
+					case 2:
+						setBlock(world, x + u * f, y, z, Blocks.torch, 5,
+								blockUpdateFlag);
+					default:
+						setBlock(world, x + u * f, y, z + zStep, Blocks.rail);
+					}
+				}
+			}
 		} else {
 			int xStep = (direction == EAST) ? 1 : -1;
 			setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
@@ -865,7 +935,7 @@ public class ItemInstaTower extends Item {
 				for (int v = 0; v < 4; v++) {
 					damBlock(world, x, y + v, z - 3);
 					for (int w = -2; w < 3; w++) {
-						world.setBlockToAir(x, y + v, z + w);
+						vaporizeBlock(world, x, y + v, z + w);
 					}
 					damBlock(world, x, y + v, z + 3);
 				}
@@ -909,6 +979,61 @@ public class ItemInstaTower extends Item {
 					break;
 				}
 				x += xStep;
+			}
+			for (int u = 0; u < 2; u++) {
+				for (int w = -2; w < 3; w++) {
+					setBlock(world, x + u * xStep, y - 1, z + w,
+							Blocks.stonebrick);
+				}
+				for (int v = 0; v < 4; v++) {
+					damBlock(world, x + u * xStep, y + v, z - 3);
+					for (int w = -2; w < 3; w++) {
+						vaporizeBlock(world, x + u * xStep, y + v, z + w);
+					}
+					damBlock(world, x + u * xStep, y + v, z + 3);
+				}
+				for (int w = -3; w < 4; w++) {
+					damBlock(world, x + u * xStep, y + 4, z + w);
+				}
+				setBlock(world, x + u * xStep, y, z + 1, Blocks.rail);
+				setBlock(world, x + u * xStep, y, z - 1, Blocks.rail);
+			}
+			for (int w = -2; w < 3; w++) {
+				for (int v = -1; v < 4; v++) {
+					damBlock(world, x + 2 * xStep, y + v, z + w);
+				}
+			}
+			setBlock(world, x + xStep, y, z + 2, Blocks.rail);
+			setBlock(world, x + xStep, y, z - 2, Blocks.rail);
+			for (int f = -1; f <= 1; f += 2) {
+				for (int w = 3; w < 1000; w++) {
+					solidifyBlock(world, x, y - 1, z + w * f);
+					solidifyBlock(world, x + xStep, y - 1, z + w * f);
+					solidifyBlock(world, x - xStep, y + 4, z + w * f);
+					solidifyBlock(world, x, y + 4, z + w * f);
+					solidifyBlock(world, x + xStep, y + 4, z + w * f);
+					solidifyBlock(world, x + xStep + xStep, y + 4, z + w * f);
+					for (int v = 0; v < 4; v++) {
+						damBlock(world, x - xStep, y + v, z + w * f);
+						vaporizeBlock(world, x, y + v, z + w * f);
+						vaporizeBlock(world, x + xStep, y + v, z + w * f);
+						damBlock(world, x + xStep + xStep, y + v, z + w * f);
+					}
+					switch (w % 5) {
+					case 1:
+					case 3:
+						setBlock(world, x + xStep, y, z + w * f,
+								Blocks.golden_rail);
+						setBlock(world, x, y, z + w * f, Blocks.redstone_torch,
+								5, blockUpdateFlag);
+						break;
+					case 2:
+						setBlock(world, x, y, z + w * f, Blocks.torch, 5,
+								blockUpdateFlag);
+					default:
+						setBlock(world, x + xStep, y, z + w * f, Blocks.rail);
+					}
+				}
 			}
 		}
 	}
