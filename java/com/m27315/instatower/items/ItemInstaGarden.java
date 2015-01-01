@@ -48,23 +48,22 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class ItemInstaTower extends ItemInstaStructure {
-	protected String name = "iteminstatower";
+public class ItemInstaGarden extends ItemInstaStructure {
+	protected String name = "iteminstagarden";
 
-	public ItemInstaTower(FMLPreInitializationEvent event, Logger logger) {
+	public ItemInstaGarden(FMLPreInitializationEvent event, Logger logger) {
 		this.schematic = "/assets/" + Constants.MODID
-				+ "/schematics/instatower.cfg";
+				+ "/schematics/instagarden.cfg";
 		this.logger = logger;
 		this.setMaxStackSize(1);
 		this.setUnlocalizedName(Constants.MODID + '_' + name);
-		this.setCreativeTab(CreativeTabs.tabMaterials);
+		this.setCreativeTab(CreativeTabs.tabFood);
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
-		GameRegistry.addRecipe(new ItemStack(this), "SWS", "GSG", "dwd", 'd',
-				new ItemStack(Blocks.dirt), 'w', new ItemStack(
-						Items.wheat_seeds), 'G', new ItemStack(Blocks.glass),
-				'S', new ItemStack(Blocks.cobblestone), 'W', new ItemStack(
-						Items.stick));
+		GameRegistry.addRecipe(new ItemStack(this), "t t", "LsL", "ddd", 'd',
+				new ItemStack(Blocks.dirt), 's', new ItemStack(
+						Items.wheat_seeds), 'L', new ItemStack(Blocks.log),
+				't', new ItemStack(Blocks.torch));
 	}
 
 	@Override
@@ -72,7 +71,6 @@ public class ItemInstaTower extends ItemInstaStructure {
 			int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
 
 		return setStructure(stack, player, world, x, y, z, side, hitX, hitY,
-				hitZ, true);
+				hitZ, false);
 	}
-
 }
