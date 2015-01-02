@@ -77,86 +77,97 @@ public class ItemInstaStructure extends Item {
 				--stack.stackSize;
 			}
 
-			loadConfigFile();
-			numberOfBeacons = 0;
-			numberOfChests = 0;
-			List<List<Character>> prevBlocks = null;
-
 			// Direction: 0=South, 1=West, 2=North, 3=East
 			int facingDirection = MathHelper
 					.floor_double((double) ((player.rotationYaw * 4F) / 360F) + 0.5D) & 3;
-			// Offset structure to find red carpet entrance.
-			Vec3 offset = findRedCarpet(facingDirection);
-			x += (int) offset.xCoord;
-			y -= groundLevel;
-			z += (int) offset.zCoord;
-			// Prepare site - assume first layer is biggest.
-			Block stone = Blocks.stone;
-			List<List<Character>> blocks = layerDefs.get(layerStack.get(0));
-			// Rotate structure according to direction faced.
-			blocks = rotateBlocks(blocks, facingDirection);
-			for (int j = 0; j < blocks.size(); j++) {
-				List<Character> row = blocks.get(j);
-				for (int i = 0; i < row.size(); i++) {
-					// Clear out blocks between this block and top of structure
-					for (int k = layerStack.size(); k > 0; k--) {
-						world.setBlockToAir(x + i, y + k, z + j);
-					}
-					// Build up with dirt between this block down to ground.
-					for (int k = y - 1; k >= 0; k--) {
-						if (world.isAirBlock(x + i, k, z + j)) {
-							setBlock(world, x + i, k, z + j, stone);
-						} else {
-							break;
-						}
-					}
-				}
-			}
-			// Lay down each layer - basic blocks first!
-			for (int n = 0; n < layerStack.size(); n++) {
-				String layer = layerStack.get(n);
-				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-				setLayer1(world, x, y + n, z, blocks, prevBlocks);
-				prevBlocks = blocks;
-			}
-			// Lay down each layer - dependent blocks next!
-			prevBlocks = null;
-			for (int n = 0; n < layerStack.size(); n++) {
-				String layer = layerStack.get(n);
-				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-				setLayer2(world, x, y + n, z, blocks, prevBlocks);
-				prevBlocks = blocks;
-			}
-			if (setAnimals) {
-				// Have some animals! Yee-haw!
-				x -= (int) offset.xCoord;
-				y += groundLevel;
-				z -= (int) offset.zCoord;
-				switch (facingDirection) {
-				case SOUTH:
-					z -= 3;
-					break;
-				case WEST:
-					x += 3;
-					break;
-				case NORTH:
-					z += 3;
-					break;
-				case EAST:
-					x -= 3;
-					break;
-				}
-				for (int n = 0; n < 2; n++) {
-					spawnEntity(world, new EntityChicken(world), x, y, z);
-					spawnEntity(world, new EntityCow(world), x, y, z);
-					spawnEntity(world, new EntityHorse(world), x, y, z);
-					// spawnEntity(world, new EntityPig(world), x, y, z);
-					// spawnEntity(world, new EntitySheep(world), x, y, z);
-				}
-			}
-			return true;
+
+			return setStructure(world, x, y, z, facingDirection, setAnimals);
 		}
 		return false;
+	}
+
+	public boolean setStructure(World world, int x, int y, int z,
+			int facingDirection, boolean setAnimals) {
+		loadConfigFile();
+		numberOfBeacons = 0;
+		numberOfChests = 0;
+		List<List<Character>> prevBlocks = null;
+
+		// Offset structure to find red carpet entrance.
+		Vec3 offset = findRedCarpet(facingDirection);
+		x += (int) offset.xCoord;
+		y -= groundLevel;
+		z += (int) offset.zCoord;
+		// Prepare site - assume first layer is biggest.
+		Block stone = Blocks.stone;
+		List<List<Character>> blocks = layerDefs.get(layerStack.get(0));
+		// Rotate structure according to direction faced.
+		blocks = rotateBlocks(blocks, facingDirection);
+		for (int j = 0; j < blocks.size(); j++) {
+			List<Character> row = blocks.get(j);
+			for (int i = 0; i < row.size(); i++) {
+				// Clear out blocks between this block and top of structure
+				for (int k = layerStack.size(); k > 0; k--) {
+					Block b = world.getBlock(x + i, y + k, z + j);
+					if (!(b.equals(Blocks.air) || b.equals(Blocks.torch)
+							|| b.equals(Blocks.stonebrick) || b
+								.equals(Blocks.glowstone))) {
+						world.setBlockToAir(x + i, y + k, z + j);
+					}
+				}
+				// Build up with dirt between this block down to ground.
+				for (int k = y - 1; k >= 0; k--) {
+					if (world.isAirBlock(x + i, k, z + j)) {
+						setBlock(world, x + i, k, z + j, stone);
+					} else {
+						break;
+					}
+				}
+			}
+		}
+		// Lay down each layer - basic blocks first!
+		for (int n = 0; n < layerStack.size(); n++) {
+			String layer = layerStack.get(n);
+			blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
+			setLayer1(world, x, y + n, z, blocks, prevBlocks);
+			prevBlocks = blocks;
+		}
+		// Lay down each layer - dependent blocks next!
+		prevBlocks = null;
+		for (int n = 0; n < layerStack.size(); n++) {
+			String layer = layerStack.get(n);
+			blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
+			setLayer2(world, x, y + n, z, blocks, prevBlocks);
+			prevBlocks = blocks;
+		}
+		if (setAnimals) {
+			// Have some animals! Yee-haw!
+			x -= (int) offset.xCoord;
+			y += groundLevel;
+			z -= (int) offset.zCoord;
+			switch (facingDirection) {
+			case SOUTH:
+				z -= 3;
+				break;
+			case WEST:
+				x += 3;
+				break;
+			case NORTH:
+				z += 3;
+				break;
+			case EAST:
+				x -= 3;
+				break;
+			}
+			for (int n = 0; n < 2; n++) {
+				spawnEntity(world, new EntityChicken(world), x, y, z);
+				spawnEntity(world, new EntityCow(world), x, y, z);
+				spawnEntity(world, new EntityHorse(world), x, y, z);
+				// spawnEntity(world, new EntityPig(world), x, y, z);
+				// spawnEntity(world, new EntitySheep(world), x, y, z);
+			}
+		}
+		return true;
 	}
 
 	protected List<List<Character>> rotateBlocks(
@@ -621,21 +632,22 @@ public class ItemInstaStructure extends Item {
 
 		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
 		Block gate = Blocks.fence_gate;
-		logger.info("setgate: (x,y,z)=(" + x + "," + y + "," + z + "), (i,j)=("
-				+ i + "," + j + "), " + openSides.size() + " open sides.");
+		// logger.info("setgate: (x,y,z)=(" + x + "," + y + "," + z +
+		// "), (i,j)=("
+		// + i + "," + j + "), " + openSides.size() + " open sides.");
 		if (openSides.isEmpty()) {
-			logger.info("Setting default gate - no metadata.");
+			// logger.info("Setting default gate - no metadata.");
 			setBlock(world, x, y, z, gate);
 		} else {
 			switch (openSides.get(0)) {
 			case SOUTH:
 			case NORTH:
-				logger.info("Setting gate open to NORTH-SOUTH");
+				// logger.info("Setting gate open to NORTH-SOUTH");
 				setBlock(world, x, y, z, gate, 2, blockUpdateFlag);
 				break;
 			case EAST:
 			case WEST:
-				logger.info("Setting gate open to EAST-WEST");
+				// logger.info("Setting gate open to EAST-WEST");
 				setBlock(world, x, y, z, gate, 3, blockUpdateFlag);
 				break;
 			}
@@ -740,9 +752,9 @@ public class ItemInstaStructure extends Item {
 	protected void setTunnel(World world, int x, int y, int z, int i, int j,
 			List<List<Character>> blocks) {
 		List<Integer> openSides = findPreferredOpenSides(blocks, i, j);
-		logger.info("setTunnel: (x,y,z)=(" + x + "," + y + "," + z
-				+ "), (i,j)=(" + i + "," + j + "), " + openSides.size()
-				+ " open sides.");
+		// logger.info("setTunnel: (x,y,z)=(" + x + "," + y + "," + z
+		// + "), (i,j)=(" + i + "," + j + "), " + openSides.size()
+		// + " open sides.");
 		int direction = EAST;
 		int stepMeta = 1;
 		int railMeta = 3;
@@ -873,7 +885,7 @@ public class ItemInstaStructure extends Item {
 			setBlock(world, x + 2, y, z + zStep, Blocks.rail);
 			setBlock(world, x - 2, y, z + zStep, Blocks.rail);
 			for (int f = -1; f <= 1; f += 2) {
-				for (int u = 3; u < 1000; u++) {
+				for (int u = 3; u < 500; u++) {
 					solidifyBlock(world, x + u * f, y - 1, z);
 					solidifyBlock(world, x + u * f, y - 1, z + zStep);
 					solidifyBlock(world, x + u * f, y + 4, z - zStep);
@@ -989,7 +1001,7 @@ public class ItemInstaStructure extends Item {
 			setBlock(world, x + xStep, y, z + 2, Blocks.rail);
 			setBlock(world, x + xStep, y, z - 2, Blocks.rail);
 			for (int f = -1; f <= 1; f += 2) {
-				for (int w = 3; w < 1000; w++) {
+				for (int w = 3; w < 500; w++) {
 					solidifyBlock(world, x, y - 1, z + w * f);
 					solidifyBlock(world, x + xStep, y - 1, z + w * f);
 					solidifyBlock(world, x - xStep, y + 4, z + w * f);
@@ -1140,14 +1152,21 @@ public class ItemInstaStructure extends Item {
 				case '+':
 					setBlock(world, x + i, y, z + j, Blocks.fence);
 					break;
-				case '=':
+				case '-':
 					setFenceGate(world, x + i, y, z + j, i, j, blocks);
+					break;
+				case '=':
+					setBlock(world, x + i, y, z + j, Blocks.rail);
 					break;
 				case '.':
 					// Do nothing - NO-OP.
 					break;
 				default:
-					world.setBlockToAir(x + i, y, z + j);
+					Block B = world.getBlock(x + i, y, z + j);
+					if (!(B.equals(Blocks.air) || B.equals(Blocks.torch) || B
+							.equals(Blocks.stonebrick))) {
+						world.setBlockToAir(x + i, y, z + j);
+					}
 					break;
 				}
 			}
