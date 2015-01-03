@@ -803,8 +803,7 @@ public class ItemInstaStructure extends Item {
 			setBlock(world, x - 1, y, z - zStep, Blocks.golden_rail);
 			setBlock(world, x + 1, y, z - zStep, Blocks.golden_rail);
 			spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
-			spawnEntity(world, new EntityMinecartEmpty(world), x + 1, y, z);
-			for (; y > 10; y--) {
+			for (; y > 6; y--) {
 				for (int u = 1; u < 3; u++) {
 					setBlock(world, x - u, y - 1, z, Blocks.stonebrick);
 					setBlock(world, x + u, y - 1, z, Blocks.stonebrick);
@@ -859,7 +858,7 @@ public class ItemInstaStructure extends Item {
 				}
 				z += zStep;
 			}
-			for (int w = 0; w < 2; w++) {
+			for (int w = 0; w < 5; w++) {
 				for (int u = -2; u < 3; u++) {
 					setBlock(world, x + u, y - 1, z + w * zStep,
 							Blocks.stonebrick);
@@ -874,53 +873,46 @@ public class ItemInstaStructure extends Item {
 				for (int u = -3; u < 4; u++) {
 					damBlock(world, x + u, y + 4, z + w * zStep);
 				}
-				setBlock(world, x + 1, y, z + w * zStep, Blocks.rail);
-				setBlock(world, x - 1, y, z + w * zStep, Blocks.rail);
+				if (w < 2) {
+					setBlock(world, x + 1, y, z + w * zStep, Blocks.rail);
+					setBlock(world, x - 1, y, z + w * zStep, Blocks.rail);
+				}
 			}
 			for (int u = -2; u < 3; u++) {
 				for (int v = -1; v < 4; v++) {
-					damBlock(world, x + u, y + v, z + 2 * zStep);
+					damBlock(world, x + u, y + v, z + 5 * zStep);
 				}
 			}
-			setBlock(world, x + 2, y, z + zStep, Blocks.rail);
-			setBlock(world, x - 2, y, z + zStep, Blocks.rail);
-			for (int f = -1; f <= 1; f += 2) {
-				for (int u = 3; u < 500; u++) {
-					solidifyBlock(world, x + u * f, y - 1, z);
-					solidifyBlock(world, x + u * f, y - 1, z + zStep);
-					solidifyBlock(world, x + u * f, y + 4, z - zStep);
-					solidifyBlock(world, x + u * f, y + 4, z);
-					solidifyBlock(world, x + u * f, y + 4, z + zStep);
-					solidifyBlock(world, x + u * f, y + 4, z + zStep + zStep);
-					for (int v = 0; v < 4; v++) {
-						damBlock(world, x + u * f, y + v, z - zStep);
-						vaporizeBlock(world, x + u * f, y + v, z);
-						vaporizeBlock(world, x + u * f, y + v, z + zStep);
-						damBlock(world, x + u * f, y + v, z + zStep + zStep);
-					}
-					switch (u % 5) {
-					case 1:
-					case 3:
-						setBlock(world, x + u * f, y, z + zStep,
-								Blocks.golden_rail);
-						setBlock(world, x + u * f, y, z, Blocks.redstone_torch,
-								5, blockUpdateFlag);
-						break;
-					case 2:
-						setBlock(world, x + u * f, y, z, Blocks.torch, 5,
-								blockUpdateFlag);
-					default:
-						setBlock(world, x + u * f, y, z + zStep, Blocks.rail);
-					}
+			z += 2 * zStep;
+			if (direction == SOUTH) {
+				setBlock(world, x + 2, y, z - zStep, Blocks.rail);
+				setBlock(world, x + 2, y, z + zStep, Blocks.rail);
+				setBlock(world, x + 1, y, z + zStep, Blocks.rail);
+				setBlock(world, x + 0, y, z + zStep, Blocks.rail);
+				setBlock(world, x - 1, y, z + zStep, Blocks.rail);
+				setBlock(world, x - 1, y, z, Blocks.rail);
+				for (int u = 3; u < 501; u++) {
+					setTunnelSliceEW(world, x + u, y, z, u);
 				}
+				setBlock(world, x + 500, y, z, Blocks.rail);
+			} else {
+				setBlock(world, x - 2, y, z - zStep, Blocks.rail);
+				setBlock(world, x - 2, y, z + zStep, Blocks.rail);
+				setBlock(world, x - 1, y, z + zStep, Blocks.rail);
+				setBlock(world, x - 0, y, z + zStep, Blocks.rail);
+				setBlock(world, x + 1, y, z + zStep, Blocks.rail);
+				setBlock(world, x + 1, y, z, Blocks.rail);
+				for (int u = 3; u < 501; u++) {
+					setTunnelSliceEW(world, x - u, y, z, u);
+				}
+				setBlock(world, x - 500, y, z, Blocks.rail);
 			}
 		} else {
 			int xStep = (direction == EAST) ? 1 : -1;
 			setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
 			setBlock(world, x - xStep, y, z + 1, Blocks.golden_rail);
 			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z - 1);
-			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z + 1);
-			for (; y > 10; y--) {
+			for (; y > 6; y--) {
 				for (int w = 1; w < 3; w++) {
 					setBlock(world, x, y - 1, z - w, Blocks.stonebrick);
 					setBlock(world, x, y - 1, z + w, Blocks.stonebrick);
@@ -975,11 +967,12 @@ public class ItemInstaStructure extends Item {
 				}
 				x += xStep;
 			}
-			for (int u = 0; u < 2; u++) {
+			for (int u = 0; u < 5; u++) {
+				// set floor.
 				for (int w = -2; w < 3; w++) {
-					setBlock(world, x + u * xStep, y - 1, z + w,
-							Blocks.stonebrick);
+					solidifyBlock(world, x + u * xStep, y - 1, z + w);
 				}
+				// set walls and clear central.
 				for (int v = 0; v < 4; v++) {
 					damBlock(world, x + u * xStep, y + v, z - 3);
 					for (int w = -2; w < 3; w++) {
@@ -987,49 +980,105 @@ public class ItemInstaStructure extends Item {
 					}
 					damBlock(world, x + u * xStep, y + v, z + 3);
 				}
+				if (u < 2) {
+					setBlock(world, x + u * xStep, y, z + 1, Blocks.rail);
+					setBlock(world, x + u * xStep, y, z - 1, Blocks.rail);
+				}
+				// set ceiling.
 				for (int w = -3; w < 4; w++) {
 					damBlock(world, x + u * xStep, y + 4, z + w);
 				}
-				setBlock(world, x + u * xStep, y, z + 1, Blocks.rail);
-				setBlock(world, x + u * xStep, y, z - 1, Blocks.rail);
 			}
+			// set far wall.
 			for (int w = -2; w < 3; w++) {
 				for (int v = -1; v < 4; v++) {
-					damBlock(world, x + 2 * xStep, y + v, z + w);
+					damBlock(world, x + 5 * xStep, y + v, z + w);
 				}
 			}
-			setBlock(world, x + xStep, y, z + 2, Blocks.rail);
-			setBlock(world, x + xStep, y, z - 2, Blocks.rail);
-			for (int f = -1; f <= 1; f += 2) {
-				for (int w = 3; w < 500; w++) {
-					solidifyBlock(world, x, y - 1, z + w * f);
-					solidifyBlock(world, x + xStep, y - 1, z + w * f);
-					solidifyBlock(world, x - xStep, y + 4, z + w * f);
-					solidifyBlock(world, x, y + 4, z + w * f);
-					solidifyBlock(world, x + xStep, y + 4, z + w * f);
-					solidifyBlock(world, x + xStep + xStep, y + 4, z + w * f);
-					for (int v = 0; v < 4; v++) {
-						damBlock(world, x - xStep, y + v, z + w * f);
-						vaporizeBlock(world, x, y + v, z + w * f);
-						vaporizeBlock(world, x + xStep, y + v, z + w * f);
-						damBlock(world, x + xStep + xStep, y + v, z + w * f);
-					}
-					switch (w % 5) {
-					case 1:
-					case 3:
-						setBlock(world, x + xStep, y, z + w * f,
-								Blocks.golden_rail);
-						setBlock(world, x, y, z + w * f, Blocks.redstone_torch,
-								5, blockUpdateFlag);
-						break;
-					case 2:
-						setBlock(world, x, y, z + w * f, Blocks.torch, 5,
-								blockUpdateFlag);
-					default:
-						setBlock(world, x + xStep, y, z + w * f, Blocks.rail);
-					}
+			x += 2 * xStep;
+			if (direction == EAST) {
+				setBlock(world, x - xStep, y, z - 2, Blocks.rail);
+				setBlock(world, x + xStep, y, z - 2, Blocks.rail);
+				setBlock(world, x + xStep, y, z - 1, Blocks.rail);
+				setBlock(world, x + xStep, y, z - 0, Blocks.rail);
+				setBlock(world, x + xStep, y, z + 1, Blocks.rail);
+				setBlock(world, x, y, z + 1, Blocks.rail);
+				for (int w = 3; w < 501; w++) {
+					setTunnelSliceNS(world, x, y, z - w, w);
 				}
+				setBlock(world, x, y, z - 500, Blocks.rail);
+			} else {
+				setBlock(world, x - xStep, y, z + 2, Blocks.rail);
+				setBlock(world, x + xStep, y, z + 2, Blocks.rail);
+				setBlock(world, x + xStep, y, z + 1, Blocks.rail);
+				setBlock(world, x + xStep, y, z + 0, Blocks.rail);
+				setBlock(world, x + xStep, y, z - 1, Blocks.rail);
+				setBlock(world, x, y, z - 1, Blocks.rail);
+				for (int w = 3; w < 501; w++) {
+					setTunnelSliceNS(world, x, y, z + w, w);
+				}
+				setBlock(world, x, y, z + 500, Blocks.rail);
 			}
+		}
+	}
+
+	protected void setTunnelSliceNS(World world, int x, int y, int z, int s) {
+		int h = 4;
+		// Build floor and ceiling.
+		for (int u = -3; u <= 3; u++) {
+			solidifyBlock(world, x + u, y - 1, z);
+			solidifyBlock(world, x + u, y + h, z);
+		}
+		// Build walls and clear tunnel.
+		for (int v = 0; v < h; v++) {
+			damBlock(world, x - 3, y + v, z);
+			for (int u = -2; u <= 2; u++) {
+				vaporizeBlock(world, x + u, y + v, z);
+			}
+			damBlock(world, x + 3, y + v, z);
+		}
+		switch (s % 4) {
+		case 3:
+			setBlock(world, x - 1, y, z, Blocks.golden_rail);
+			setBlock(world, x, y, z, Blocks.redstone_torch, 5, blockUpdateFlag);
+			setBlock(world, x + 1, y, z, Blocks.golden_rail);
+			setBlock(world, x, y + h - 1, z, Blocks.glowstone);
+			break;
+		case 1:
+			setBlock(world, x, y, z, Blocks.torch, 5, blockUpdateFlag);
+		default:
+			setBlock(world, x - 1, y, z, Blocks.rail);
+			setBlock(world, x + 1, y, z, Blocks.rail);
+		}
+	}
+
+	protected void setTunnelSliceEW(World world, int x, int y, int z, int s) {
+		int h = 4;
+		// Build floor and ceiling.
+		for (int w = -3; w <= 3; w++) {
+			solidifyBlock(world, x, y - 1, z + w);
+			solidifyBlock(world, x, y + h, z + w);
+		}
+		// Build walls and clear tunnel.
+		for (int v = 0; v < 4; v++) {
+			damBlock(world, x, y + v, z - 3);
+			for (int w = -2; w <= 2; w++) {
+				vaporizeBlock(world, x, y + v, z + w);
+			}
+			damBlock(world, x, y + v, z + 3);
+		}
+		switch (s % 4) {
+		case 3:
+			setBlock(world, x, y, z - 1, Blocks.golden_rail);
+			setBlock(world, x, y, z, Blocks.redstone_torch, 5, blockUpdateFlag);
+			setBlock(world, x, y, z + 1, Blocks.golden_rail);
+			setBlock(world, x, y + h - 1, z, Blocks.glowstone);
+			break;
+		case 1:
+			setBlock(world, x, y, z, Blocks.torch, 5, blockUpdateFlag);
+		default:
+			setBlock(world, x, y, z - 1, Blocks.rail);
+			setBlock(world, x, y, z + 1, Blocks.rail);
 		}
 	}
 
