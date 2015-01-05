@@ -59,6 +59,12 @@ public class ItemInstaStructure extends Item {
 	protected HashMap<String, List<List<Character>>> layerDefs;
 	protected List<String> layerStack;
 
+	// Configuration variables.
+	protected boolean tunnelEnable = true;
+	protected int tunnelDepth = 6;
+	protected int tunnelLength = 501;
+	protected boolean tunnelClear = false;
+
 	// CONSTANTS
 	protected static final int SOUTH = 0;
 	protected static final int WEST = 1;
@@ -742,10 +748,14 @@ public class ItemInstaStructure extends Item {
 	}
 
 	protected void vaporizeBlock(World world, int x, int y, int z) {
-		Block block = world.getBlock(x, y, z);
-		String name = block.getLocalizedName();
-		if (!(name.endsWith(" Ore") || world.isAirBlock(x, y, z))) {
+		if (tunnelClear) {
 			world.setBlockToAir(x, y, z);
+		} else {
+			Block block = world.getBlock(x, y, z);
+			String name = block.getLocalizedName();
+			if (!(name.endsWith(" Ore") || world.isAirBlock(x, y, z))) {
+				world.setBlockToAir(x, y, z);
+			}
 		}
 	}
 
@@ -803,7 +813,7 @@ public class ItemInstaStructure extends Item {
 			setBlock(world, x - 1, y, z - zStep, Blocks.golden_rail);
 			setBlock(world, x + 1, y, z - zStep, Blocks.golden_rail);
 			spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
-			for (; y > 6; y--) {
+			for (; y > tunnelDepth; y--) {
 				for (int u = 1; u < 3; u++) {
 					setBlock(world, x - u, y - 1, z, Blocks.stonebrick);
 					setBlock(world, x + u, y - 1, z, Blocks.stonebrick);
@@ -891,10 +901,10 @@ public class ItemInstaStructure extends Item {
 				setBlock(world, x + 0, y, z + zStep, Blocks.rail);
 				setBlock(world, x - 1, y, z + zStep, Blocks.rail);
 				setBlock(world, x - 1, y, z, Blocks.rail);
-				for (int u = 3; u < 501; u++) {
+				for (int u = 3; u < tunnelLength; u++) {
 					setTunnelSliceEW(world, x + u, y, z, u);
 				}
-				setBlock(world, x + 500, y, z, Blocks.rail);
+				setBlock(world, x + tunnelLength - 1, y, z, Blocks.rail);
 			} else {
 				setBlock(world, x - 2, y, z - zStep, Blocks.rail);
 				setBlock(world, x - 2, y, z + zStep, Blocks.rail);
@@ -902,17 +912,17 @@ public class ItemInstaStructure extends Item {
 				setBlock(world, x - 0, y, z + zStep, Blocks.rail);
 				setBlock(world, x + 1, y, z + zStep, Blocks.rail);
 				setBlock(world, x + 1, y, z, Blocks.rail);
-				for (int u = 3; u < 501; u++) {
+				for (int u = 3; u < tunnelLength; u++) {
 					setTunnelSliceEW(world, x - u, y, z, u);
 				}
-				setBlock(world, x - 500, y, z, Blocks.rail);
+				setBlock(world, x - (tunnelLength - 1), y, z, Blocks.rail);
 			}
 		} else {
 			int xStep = (direction == EAST) ? 1 : -1;
 			setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
 			setBlock(world, x - xStep, y, z + 1, Blocks.golden_rail);
 			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z - 1);
-			for (; y > 6; y--) {
+			for (; y > tunnelDepth; y--) {
 				for (int w = 1; w < 3; w++) {
 					setBlock(world, x, y - 1, z - w, Blocks.stonebrick);
 					setBlock(world, x, y - 1, z + w, Blocks.stonebrick);
@@ -1003,10 +1013,10 @@ public class ItemInstaStructure extends Item {
 				setBlock(world, x + xStep, y, z - 0, Blocks.rail);
 				setBlock(world, x + xStep, y, z + 1, Blocks.rail);
 				setBlock(world, x, y, z + 1, Blocks.rail);
-				for (int w = 3; w < 501; w++) {
+				for (int w = 3; w < tunnelLength; w++) {
 					setTunnelSliceNS(world, x, y, z - w, w);
 				}
-				setBlock(world, x, y, z - 500, Blocks.rail);
+				setBlock(world, x, y, z - (tunnelLength - 1), Blocks.rail);
 			} else {
 				setBlock(world, x - xStep, y, z + 2, Blocks.rail);
 				setBlock(world, x + xStep, y, z + 2, Blocks.rail);
@@ -1014,16 +1024,16 @@ public class ItemInstaStructure extends Item {
 				setBlock(world, x + xStep, y, z + 0, Blocks.rail);
 				setBlock(world, x + xStep, y, z - 1, Blocks.rail);
 				setBlock(world, x, y, z - 1, Blocks.rail);
-				for (int w = 3; w < 501; w++) {
+				for (int w = 3; w < tunnelLength; w++) {
 					setTunnelSliceNS(world, x, y, z + w, w);
 				}
-				setBlock(world, x, y, z + 500, Blocks.rail);
+				setBlock(world, x, y, z + tunnelLength - 1, Blocks.rail);
 			}
 		}
 	}
 
 	protected void setTunnelSliceNS(World world, int x, int y, int z, int s) {
-		int h = 4;
+		int h = 5;
 		// Build floor and ceiling.
 		for (int u = -3; u <= 3; u++) {
 			solidifyBlock(world, x + u, y - 1, z);
@@ -1046,6 +1056,14 @@ public class ItemInstaStructure extends Item {
 			break;
 		case 1:
 			setBlock(world, x, y, z, Blocks.torch, 5, blockUpdateFlag);
+			// Include tunnel supports.
+			for (int v = 0; v < h - 1; v++) {
+				setBlock(world, x - 2, y + v, z, Blocks.nether_brick_fence);
+				setBlock(world, x + 2, y + v, z, Blocks.nether_brick_fence);
+			}
+			for (int u = -2; u <= 2; u++) {
+				setBlock(world, x + u, y + h - 1, z, Blocks.nether_brick);
+			}
 		default:
 			setBlock(world, x - 1, y, z, Blocks.rail);
 			setBlock(world, x + 1, y, z, Blocks.rail);
@@ -1053,14 +1071,14 @@ public class ItemInstaStructure extends Item {
 	}
 
 	protected void setTunnelSliceEW(World world, int x, int y, int z, int s) {
-		int h = 4;
+		int h = 5;
 		// Build floor and ceiling.
 		for (int w = -3; w <= 3; w++) {
 			solidifyBlock(world, x, y - 1, z + w);
 			solidifyBlock(world, x, y + h, z + w);
 		}
 		// Build walls and clear tunnel.
-		for (int v = 0; v < 4; v++) {
+		for (int v = 0; v < h; v++) {
 			damBlock(world, x, y + v, z - 3);
 			for (int w = -2; w <= 2; w++) {
 				vaporizeBlock(world, x, y + v, z + w);
@@ -1075,6 +1093,14 @@ public class ItemInstaStructure extends Item {
 			setBlock(world, x, y + h - 1, z, Blocks.glowstone);
 			break;
 		case 1:
+			// Include tunnel supports.
+			for (int v = 0; v < h - 1; v++) {
+				setBlock(world, x, y + v, z - 2, Blocks.nether_brick_fence);
+				setBlock(world, x, y + v, z + 2, Blocks.nether_brick_fence);
+			}
+			for (int w = -2; w <= 2; w++) {
+				setBlock(world, x, y + h - 1, z + w, Blocks.nether_brick);
+			}
 			setBlock(world, x, y, z, Blocks.torch, 5, blockUpdateFlag);
 		default:
 			setBlock(world, x, y, z - 1, Blocks.rail);
@@ -1256,7 +1282,8 @@ public class ItemInstaStructure extends Item {
 					}
 					break;
 				case 'T':
-					setTunnel(world, x + i, y, z + j, i, j, blocks);
+					if (tunnelEnable)
+						setTunnel(world, x + i, y, z + j, i, j, blocks);
 					break;
 				default:
 					// Do nothing.

@@ -46,12 +46,27 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemInstaTower extends ItemInstaStructure {
 	protected String name = "iteminstatower";
 
 	public ItemInstaTower(FMLPreInitializationEvent event, Logger logger) {
+		Configuration config = new Configuration(
+				event.getSuggestedConfigurationFile());
+		config.load();
+		tunnelEnable = config.getBoolean("tunnelEnable", "Tunnel",
+				tunnelEnable,
+				"When set, tunnels will be dug with lateral mining runs.");
+		tunnelDepth = config.getInt("tunnelDepth", "Tunnel", tunnelDepth, 0,
+				100, "Determines how deep the mining tunnel will"
+						+ " descend until creating lateral runs");
+		tunnelLength = config.getInt("tunnelLength", "Tunnel", 501, 6, 100000,
+				"Determines length of lateral tunnel runs.");
+		tunnelClear = config.getBoolean("tunnelClear", "Tunnel", tunnelClear,
+				"When set all ores will be cleared in addition to debris.");
+		config.save();
 		this.schematic = "/assets/" + Constants.MODID
 				+ "/schematics/instatower.cfg";
 		this.logger = logger;
