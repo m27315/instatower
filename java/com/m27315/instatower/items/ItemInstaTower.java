@@ -56,6 +56,30 @@ public class ItemInstaTower extends ItemInstaStructure {
 		Configuration config = new Configuration(
 				event.getSuggestedConfigurationFile());
 		config.load();
+		towerCraft = config.getBoolean("towerCraft", "Tower", towerCraft,
+				"When enabled, the InstaTower "
+						+ " may be crafted using a simple "
+						+ "recipe; otherwise, it is only "
+						+ "available in Creative Mode.");
+		towerAnvil = config.getBoolean("towerAnvil", "Tower", towerAnvil,
+				"When enabled, an anvil is created in each tower.");
+		towerBeacon = config.getBoolean("towerBeacon", "Tower", towerBeacon,
+				"When enabled, creates beacon on top of tower.");
+		towerBrewing = config.getBoolean("towerBrewing", "Tower", towerBrewing,
+				"When enabled, a brewing stand is created in each tower.");
+		towerChests = config.getBoolean("towerChests", "Tower", towerChests,
+				"When enabled, all chests in tower"
+						+ " are populated with goodies.");
+		towerLibrary = config.getBoolean("towerLibrary", "Tower", towerLibrary,
+				"When enabled, an enchantment table surrounded "
+						+ "by bookshelves is created in tower.");
+		towerBasement = config.getBoolean("towerBasement", "Tower",
+				towerBasement,
+				"When enabled, a basement is created with potential mining "
+						+ "tunnel access and possible rail lines.");
+		towerRails = config
+				.getBoolean("towerRails", "Tower", towerRails,
+						"When enabled, a railine is included in each tower and castle.");
 		tunnelEnable = config.getBoolean("tunnelEnable", "Tunnel",
 				tunnelEnable,
 				"When set, tunnels will be dug with lateral mining runs.");
@@ -66,6 +90,19 @@ public class ItemInstaTower extends ItemInstaStructure {
 				"Determines length of lateral tunnel runs.");
 		tunnelClear = config.getBoolean("tunnelClear", "Tunnel", tunnelClear,
 				"When set all ores will be cleared in addition to debris.");
+		tunnelRails = config.getBoolean("tunnelRails", "Tunnel", tunnelRails,
+				"When enabled, a railine when be included in each tunnel.");
+		wallCraft = config.getBoolean("wallCraft", "Wall", wallCraft,
+				"When enabled, the InstaWall may be crafted using "
+						+ "a simple recipe; otherwise, it is only "
+						+ "available in Creative mode.");
+		gardenCraft = config.getBoolean("gardenCraft", "Garden", gardenCraft,
+				"When enabled, the InstaGarden may be crafted using "
+						+ "a simple recipe; otherwise, it is only "
+						+ "available in Creative mode.");
+		gardenAnimals = config.getBoolean("gardenAnimals", "Garden",
+				gardenAnimals, "When set, animals will be spawned just "
+						+ "outside the garden, where placed.");
 		config.save();
 		this.schematic = "/assets/" + Constants.MODID
 				+ "/schematics/instatower.cfg";
@@ -75,11 +112,14 @@ public class ItemInstaTower extends ItemInstaStructure {
 		this.setCreativeTab(CreativeTabs.tabMaterials);
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
-		GameRegistry.addRecipe(new ItemStack(this), "SWS", "GSG", "dwd", 'd',
-				new ItemStack(Blocks.dirt), 'w', new ItemStack(
-						Items.wheat_seeds), 'G', new ItemStack(Blocks.glass),
-				'S', new ItemStack(Blocks.cobblestone), 'W', new ItemStack(
-						Items.stick));
+		if (towerCraft) {
+			GameRegistry.addRecipe(new ItemStack(this), "SWS", "GSG", "dwd",
+					'd', new ItemStack(Blocks.dirt), 'w', new ItemStack(
+							Items.wheat_seeds), 'G',
+					new ItemStack(Blocks.glass), 'S', new ItemStack(
+							Blocks.cobblestone), 'W',
+					new ItemStack(Items.stick));
+		}
 	}
 
 	@Override
@@ -87,7 +127,7 @@ public class ItemInstaTower extends ItemInstaStructure {
 			int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
 
 		return setStructure(stack, player, world, x, y, z, side, hitX, hitY,
-				hitZ, true);
+				hitZ, false);
 	}
 
 }

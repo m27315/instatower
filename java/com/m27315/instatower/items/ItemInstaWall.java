@@ -46,6 +46,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemInstaWall extends ItemInstaStructure {
@@ -69,16 +70,33 @@ public class ItemInstaWall extends ItemInstaStructure {
 	private static Block torch = Blocks.torch;
 
 	public ItemInstaWall(FMLPreInitializationEvent event, Logger logger) {
+		Configuration config = new Configuration(
+				event.getSuggestedConfigurationFile());
+		config.load();
+		wallCraft = config.getBoolean("wallCraft", "Wall", wallCraft,
+				"When enabled, the InstaWall may be crafted using "
+						+ "a simple recipe; otherwise, it is only "
+						+ "available in Creative mode.");
+		towerBasement = config.getBoolean("towerBasement", "Tower",
+				towerBasement,
+				"When enabled, a basement is created with potential mining "
+						+ "tunnel access and possible rail lines.");
+		towerRails = config
+				.getBoolean("towerRails", "Tower", towerRails,
+						"When enabled, a railine is included in each tower and castle.");
+		config.save();
 		this.logger = logger;
 		this.setMaxStackSize(1);
 		this.setUnlocalizedName(Constants.MODID + '_' + name);
 		this.setCreativeTab(CreativeTabs.tabMaterials);
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
-		GameRegistry.addRecipe(new ItemStack(this), "SGS", "SWS", "SIS", 'S',
-				new ItemStack(Blocks.stonebrick), 'W', new ItemStack(
-						Blocks.wool), 'G', new ItemStack(Blocks.glass), 'I',
-				new ItemStack(Items.iron_ingot));
+		if (wallCraft) {
+			GameRegistry.addRecipe(new ItemStack(this), "SGS", "SWS", "SIS",
+					'S', new ItemStack(Blocks.stonebrick), 'W', new ItemStack(
+							Blocks.wool), 'G', new ItemStack(Blocks.glass),
+					'I', new ItemStack(Items.iron_ingot));
+		}
 	}
 
 	@Override
@@ -224,55 +242,71 @@ public class ItemInstaWall extends ItemInstaStructure {
 
 	private void setBasementSliceNS(World world, int x, int y, int z, int hw,
 			int h, int s) {
-		for (int i = -hw; i <= hw; i++) {
-			setBlock(world, x + i, y, z, brick);
-		}
-		for (int k = 1; k < h; k++) {
-			setBlock(world, x - hw, y + k, z, brick);
-			setBlock(world, x + hw, y + k, z, brick);
-			for (int i = -hw + 1; i < hw; i++) {
-				world.setBlockToAir(x + i, y + k, z);
+		if (towerBasement) {
+			for (int i = -hw; i <= hw; i++) {
+				setBlock(world, x + i, y, z, brick);
 			}
-		}
-		switch (s % 4) {
-		case 0:
-			setBlock(world, x, y + 1, z, pRail);
-			setBlock(world, x - 1, y + 1, z, redTorch, 5, blockUpdateFlag);
-			setBlock(world, x, y + h - 1, z, glow);
-			break;
-		case 2:
-			setBlock(world, x - hw + 1, y + h - 1, z, torch);
-			setBlock(world, x + hw - 1, y + h - 1, z, torch);
-		default:
-			setBlock(world, x, y + 1, z, rail);
-			break;
+			for (int k = 1; k < h; k++) {
+				setBlock(world, x - hw, y + k, z, brick);
+				setBlock(world, x + hw, y + k, z, brick);
+				for (int i = -hw + 1; i < hw; i++) {
+					world.setBlockToAir(x + i, y + k, z);
+				}
+			}
+			switch (s % 4) {
+			case 0:
+				if (towerRails) {
+					setBlock(world, x, y + 1, z, pRail);
+					setBlock(world, x - 1, y + 1, z, redTorch, 5,
+							blockUpdateFlag);
+				}
+				setBlock(world, x, y + h - 1, z, glow);
+				break;
+			case 2:
+				setBlock(world, x - hw + 1, y + h - 1, z, torch);
+				setBlock(world, x + hw - 1, y + h - 1, z, torch);
+			default:
+				if (towerRails) {
+					setBlock(world, x, y + 1, z, rail);
+				}
+				break;
+			}
 		}
 	}
 
 	private void setBasementSliceEW(World world, int x, int y, int z, int hw,
 			int h, int s) {
-		for (int j = -hw; j <= hw; j++) {
-			setBlock(world, x, y, z + j, brick);
-		}
-		for (int k = 1; k < h; k++) {
-			setBlock(world, x, y + k, z - hw, brick);
-			setBlock(world, x, y + k, z + hw, brick);
-			for (int j = -hw + 1; j < hw; j++) {
-				world.setBlockToAir(x, y + k, z + j);
+		if (towerBasement) {
+			for (int j = -hw; j <= hw; j++) {
+				setBlock(world, x, y, z + j, brick);
 			}
-		}
-		switch (s % 4) {
-		case 0:
-			setBlock(world, x, y + 1, z, pRail);
-			setBlock(world, x, y + 1, z - 1, redTorch, 5, blockUpdateFlag);
-			setBlock(world, x, y + h - 1, z, glow);
-			break;
-		case 2:
-			setBlock(world, x, y + h - 1, z - hw + 1, torch, 3, blockUpdateFlag);
-			setBlock(world, x, y + h - 1, z + hw - 1, torch, 4, blockUpdateFlag);
-		default:
-			setBlock(world, x, y + 1, z, rail);
-			break;
+			for (int k = 1; k < h; k++) {
+				setBlock(world, x, y + k, z - hw, brick);
+				setBlock(world, x, y + k, z + hw, brick);
+				for (int j = -hw + 1; j < hw; j++) {
+					world.setBlockToAir(x, y + k, z + j);
+				}
+			}
+			switch (s % 4) {
+			case 0:
+				if (towerRails) {
+					setBlock(world, x, y + 1, z, pRail);
+					setBlock(world, x, y + 1, z - 1, redTorch, 5,
+							blockUpdateFlag);
+				}
+				setBlock(world, x, y + h - 1, z, glow);
+				break;
+			case 2:
+				setBlock(world, x, y + h - 1, z - hw + 1, torch, 3,
+						blockUpdateFlag);
+				setBlock(world, x, y + h - 1, z + hw - 1, torch, 4,
+						blockUpdateFlag);
+			default:
+				if (towerRails) {
+					setBlock(world, x, y + 1, z, rail);
+				}
+				break;
+			}
 		}
 	}
 

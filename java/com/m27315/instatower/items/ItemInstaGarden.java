@@ -46,12 +46,24 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemInstaGarden extends ItemInstaStructure {
 	protected String name = "iteminstagarden";
 
 	public ItemInstaGarden(FMLPreInitializationEvent event, Logger logger) {
+		Configuration config = new Configuration(
+				event.getSuggestedConfigurationFile());
+		config.load();
+		gardenCraft = config.getBoolean("gardenCraft", "Garden", gardenCraft,
+				"When enabled, the InstaGarden may be crafted using "
+						+ "a simple recipe; otherwise, it is only "
+						+ "available in Creative mode.");
+		gardenAnimals = config.getBoolean("gardenAnimals", "Garden",
+				gardenAnimals, "When set, animals will be spawned just "
+						+ "outside the garden, where placed.");
+		config.save();
 		this.schematic = "/assets/" + Constants.MODID
 				+ "/schematics/instagarden.cfg";
 		this.logger = logger;
@@ -60,10 +72,12 @@ public class ItemInstaGarden extends ItemInstaStructure {
 		this.setCreativeTab(CreativeTabs.tabFood);
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
-		GameRegistry.addRecipe(new ItemStack(this), "t t", "LsL", "ddd", 'd',
-				new ItemStack(Blocks.dirt), 's', new ItemStack(
-						Items.wheat_seeds), 'L', new ItemStack(Blocks.log),
-				't', new ItemStack(Blocks.torch));
+		if (gardenCraft) {
+			GameRegistry.addRecipe(new ItemStack(this), "t t", "LsL", "ddd",
+					'd', new ItemStack(Blocks.dirt), 's', new ItemStack(
+							Items.wheat_seeds), 'L', new ItemStack(Blocks.log),
+					't', new ItemStack(Blocks.torch));
+		}
 	}
 
 	@Override
@@ -71,6 +85,6 @@ public class ItemInstaGarden extends ItemInstaStructure {
 			int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
 
 		return setStructure(stack, player, world, x, y, z, side, hitX, hitY,
-				hitZ, false);
+				hitZ, true);
 	}
 }

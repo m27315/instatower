@@ -60,10 +60,22 @@ public class ItemInstaStructure extends Item {
 	protected List<String> layerStack;
 
 	// Configuration variables.
+	protected boolean towerCraft = true;
+	protected boolean towerAnvil = true;
+	protected boolean towerBasement = true;
+	protected boolean towerBeacon = true;
+	protected boolean towerBrewing = true;
+	protected boolean towerChests = true;
+	protected boolean towerLibrary = true;
+	protected boolean towerRails = true;
 	protected boolean tunnelEnable = true;
 	protected int tunnelDepth = 6;
 	protected int tunnelLength = 501;
 	protected boolean tunnelClear = false;
+	protected boolean tunnelRails = true;
+	protected boolean wallCraft = true;
+	protected boolean gardenCraft = true;
+	protected boolean gardenAnimals = true;
 
 	// CONSTANTS
 	protected static final int SOUTH = 0;
@@ -112,41 +124,50 @@ public class ItemInstaStructure extends Item {
 		for (int j = 0; j < blocks.size(); j++) {
 			List<Character> row = blocks.get(j);
 			for (int i = 0; i < row.size(); i++) {
-				// Clear out blocks between this block and top of structure
-				for (int k = layerStack.size(); k > 0; k--) {
-					Block b = world.getBlock(x + i, y + k, z + j);
-					if (!(b.equals(Blocks.air) || b.equals(Blocks.torch)
-							|| b.equals(Blocks.stonebrick) || b
-								.equals(Blocks.glowstone))) {
-						world.setBlockToAir(x + i, y + k, z + j);
-					}
-				}
 				// Build up with dirt between this block down to ground.
-				for (int k = y - 1; k >= 0; k--) {
+				int k = y - 1;
+				if (!towerBasement)
+					k += groundLevel;
+				for (; k >= 0; k--) {
 					if (world.isAirBlock(x + i, k, z + j)) {
 						setBlock(world, x + i, k, z + j, stone);
 					} else {
 						break;
 					}
 				}
+				// Clear out blocks between this block and top of structure
+				for (k = layerStack.size(); k > 0; k--) {
+					if (towerBasement || k >= groundLevel) {
+						Block b = world.getBlock(x + i, y + k, z + j);
+						if (!(b.equals(Blocks.air) || b.equals(Blocks.torch)
+								|| b.equals(Blocks.stonebrick) || b
+									.equals(Blocks.glowstone))) {
+							world.setBlockToAir(x + i, y + k, z + j);
+						}
+					}
+				}
 			}
 		}
 		// Lay down each layer - basic blocks first!
 		for (int n = 0; n < layerStack.size(); n++) {
-			String layer = layerStack.get(n);
-			blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-			setLayer1(world, x, y + n, z, blocks, prevBlocks);
-			prevBlocks = blocks;
+			if (towerBasement || n >= groundLevel) {
+				String layer = layerStack.get(n);
+				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
+				setLayer1(world, x, y + n, z, blocks, prevBlocks);
+				prevBlocks = blocks;
+			}
 		}
 		// Lay down each layer - dependent blocks next!
 		prevBlocks = null;
 		for (int n = 0; n < layerStack.size(); n++) {
-			String layer = layerStack.get(n);
-			blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
-			setLayer2(world, x, y + n, z, blocks, prevBlocks);
-			prevBlocks = blocks;
+			if (towerBasement || n >= groundLevel) {
+				String layer = layerStack.get(n);
+				blocks = rotateBlocks(layerDefs.get(layer), facingDirection);
+				setLayer2(world, x, y + n, z, blocks, prevBlocks);
+				prevBlocks = blocks;
+			}
 		}
-		if (setAnimals) {
+		if (setAnimals && gardenAnimals) {
 			// Have some animals! Yee-haw!
 			x -= (int) offset.xCoord;
 			y += groundLevel;
@@ -540,65 +561,67 @@ public class ItemInstaStructure extends Item {
 			List<List<Character>> blocks) {
 
 		TileEntityChest tec = setChestBlock(world, x, y, z, i, j, blocks);
-		ItemStack stack = null;
 		++this.numberOfChests;
+		if (towerChests) {
+			ItemStack stack = null;
 
-		for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
-			switch (this.numberOfChests % 16) {
-			case 0:
-				stack = null;
-				break;
-			case 1:
-				stack = new ItemStack(Items.diamond, 64);
-				break;
-			case 2:
-				stack = new ItemStack(Items.iron_ingot, 64);
-				break;
-			case 3:
-				stack = new ItemStack(Items.cooked_beef, 64);
-				break;
-			case 4:
-				stack = new ItemStack(Items.enchanted_book, 64);
-				break;
-			case 5:
-				stack = new ItemStack(Items.coal, 64);
-				break;
-			case 6:
-				stack = new ItemStack(Items.flint, 64);
-				break;
-			case 7:
-				stack = new ItemStack(Items.golden_apple, 64);
-				break;
-			case 8:
-				stack = new ItemStack(Items.arrow, 64);
-				break;
-			case 9:
-				stack = new ItemStack(Blocks.rail, 64);
-				break;
-			case 10:
-				stack = new ItemStack(Blocks.redstone_torch, 64);
-				break;
-			case 11:
-				stack = new ItemStack(Blocks.redstone_block, 64);
-				break;
-			case 12:
-				stack = new ItemStack(Blocks.golden_rail, 64);
-				break;
-			case 13:
-				stack = new ItemStack(Blocks.log, 64);
-				break;
-			case 14:
-				stack = new ItemStack(Blocks.torch, 64);
-				break;
-			case 15:
-				stack = new ItemStack(Blocks.ladder, 64);
-				break;
+			for (int slot = tec.getSizeInventory() - 1; slot >= 0; slot--) {
+				switch (this.numberOfChests % 16) {
+				case 0:
+					stack = null;
+					break;
+				case 1:
+					stack = new ItemStack(Items.diamond, 64);
+					break;
+				case 2:
+					stack = new ItemStack(Items.iron_ingot, 64);
+					break;
+				case 3:
+					stack = new ItemStack(Items.cooked_beef, 64);
+					break;
+				case 4:
+					stack = new ItemStack(Items.enchanted_book, 64);
+					break;
+				case 5:
+					stack = new ItemStack(Items.coal, 64);
+					break;
+				case 6:
+					stack = new ItemStack(Items.flint, 64);
+					break;
+				case 7:
+					stack = new ItemStack(Items.golden_apple, 64);
+					break;
+				case 8:
+					stack = new ItemStack(Items.arrow, 64);
+					break;
+				case 9:
+					stack = new ItemStack(Blocks.rail, 64);
+					break;
+				case 10:
+					stack = new ItemStack(Blocks.redstone_torch, 64);
+					break;
+				case 11:
+					stack = new ItemStack(Blocks.redstone_block, 64);
+					break;
+				case 12:
+					stack = new ItemStack(Blocks.golden_rail, 64);
+					break;
+				case 13:
+					stack = new ItemStack(Blocks.log, 64);
+					break;
+				case 14:
+					stack = new ItemStack(Blocks.torch, 64);
+					break;
+				case 15:
+					stack = new ItemStack(Blocks.ladder, 64);
+					break;
+				}
+				if (stack != null) {
+					tec.setInventorySlotContents(slot, stack);
+				}
 			}
-			if (stack != null) {
-				tec.setInventorySlotContents(slot, stack);
-			}
+			world.notifyBlockChange(x, y, z, Blocks.chest);
 		}
-		world.notifyBlockChange(x, y, z, Blocks.chest);
 	}
 
 	protected void setDoor(World world, int x, int y, int z, int i, int j,
@@ -810,9 +833,11 @@ public class ItemInstaStructure extends Item {
 		int numSteps = 0;
 		if ((direction == NORTH) || (direction == SOUTH)) {
 			int zStep = (direction == SOUTH) ? 1 : -1;
-			setBlock(world, x - 1, y, z - zStep, Blocks.golden_rail);
-			setBlock(world, x + 1, y, z - zStep, Blocks.golden_rail);
-			spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
+			if (tunnelRails) {
+				setBlock(world, x - 1, y, z - zStep, Blocks.golden_rail);
+				setBlock(world, x + 1, y, z - zStep, Blocks.golden_rail);
+				spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
+			}
 			for (; y > tunnelDepth; y--) {
 				for (int u = 1; u < 3; u++) {
 					setBlock(world, x - u, y - 1, z, Blocks.stonebrick);
@@ -846,24 +871,28 @@ public class ItemInstaStructure extends Item {
 					setBlock(world, x + 2, y + 4, z - zStep, Blocks.torch,
 							torchMeta, blockUpdateFlag);
 				case 3:
-					setBlock(world, x - 1, y, z, Blocks.rail, railMeta,
-							blockUpdateFlag);
-					setBlock(world, x + 1, y, z, Blocks.rail, railMeta,
-							blockUpdateFlag);
+					if (tunnelRails) {
+						setBlock(world, x - 1, y, z, Blocks.rail, railMeta,
+								blockUpdateFlag);
+						setBlock(world, x + 1, y, z, Blocks.rail, railMeta,
+								blockUpdateFlag);
+					}
 					break;
 				case 0:
 				case 2:
 				case 4:
-					if (numSteps > 1) {
-						setBlock(world, x - 2, y, z, Blocks.redstone_torch,
-								redTorchMeta, blockUpdateFlag);
-						setBlock(world, x + 2, y, z, Blocks.redstone_torch,
-								redTorchMeta, blockUpdateFlag);
+					if (tunnelRails) {
+						if (numSteps > 1) {
+							setBlock(world, x - 2, y, z, Blocks.redstone_torch,
+									redTorchMeta, blockUpdateFlag);
+							setBlock(world, x + 2, y, z, Blocks.redstone_torch,
+									redTorchMeta, blockUpdateFlag);
+						}
+						setBlock(world, x - 1, y, z, Blocks.golden_rail,
+								poweredMeta, blockUpdateFlag);
+						setBlock(world, x + 1, y, z, Blocks.golden_rail,
+								poweredMeta, blockUpdateFlag);
 					}
-					setBlock(world, x - 1, y, z, Blocks.golden_rail,
-							poweredMeta, blockUpdateFlag);
-					setBlock(world, x + 1, y, z, Blocks.golden_rail,
-							poweredMeta, blockUpdateFlag);
 					break;
 				}
 				z += zStep;
@@ -883,9 +912,11 @@ public class ItemInstaStructure extends Item {
 				for (int u = -3; u < 4; u++) {
 					damBlock(world, x + u, y + 4, z + w * zStep);
 				}
-				if (w < 2) {
-					setBlock(world, x + 1, y, z + w * zStep, Blocks.rail);
-					setBlock(world, x - 1, y, z + w * zStep, Blocks.rail);
+				if (tunnelRails) {
+					if (w < 2) {
+						setBlock(world, x + 1, y, z + w * zStep, Blocks.rail);
+						setBlock(world, x - 1, y, z + w * zStep, Blocks.rail);
+					}
 				}
 			}
 			for (int u = -2; u < 3; u++) {
@@ -895,33 +926,39 @@ public class ItemInstaStructure extends Item {
 			}
 			z += 2 * zStep;
 			if (direction == SOUTH) {
-				setBlock(world, x + 2, y, z - zStep, Blocks.rail);
-				setBlock(world, x + 2, y, z + zStep, Blocks.rail);
-				setBlock(world, x + 1, y, z + zStep, Blocks.rail);
-				setBlock(world, x + 0, y, z + zStep, Blocks.rail);
-				setBlock(world, x - 1, y, z + zStep, Blocks.rail);
-				setBlock(world, x - 1, y, z, Blocks.rail);
 				for (int u = 3; u < tunnelLength; u++) {
 					setTunnelSliceEW(world, x + u, y, z, u);
 				}
-				setBlock(world, x + tunnelLength - 1, y, z, Blocks.rail);
+				if (tunnelRails) {
+					setBlock(world, x + 2, y, z - zStep, Blocks.rail);
+					setBlock(world, x + 2, y, z + zStep, Blocks.rail);
+					setBlock(world, x + 1, y, z + zStep, Blocks.rail);
+					setBlock(world, x + 0, y, z + zStep, Blocks.rail);
+					setBlock(world, x - 1, y, z + zStep, Blocks.rail);
+					setBlock(world, x - 1, y, z, Blocks.rail);
+					setBlock(world, x + tunnelLength - 1, y, z, Blocks.rail);
+				}
 			} else {
-				setBlock(world, x - 2, y, z - zStep, Blocks.rail);
-				setBlock(world, x - 2, y, z + zStep, Blocks.rail);
-				setBlock(world, x - 1, y, z + zStep, Blocks.rail);
-				setBlock(world, x - 0, y, z + zStep, Blocks.rail);
-				setBlock(world, x + 1, y, z + zStep, Blocks.rail);
-				setBlock(world, x + 1, y, z, Blocks.rail);
+				if (tunnelRails) {
+					setBlock(world, x - 2, y, z - zStep, Blocks.rail);
+					setBlock(world, x - 2, y, z + zStep, Blocks.rail);
+					setBlock(world, x - 1, y, z + zStep, Blocks.rail);
+					setBlock(world, x - 0, y, z + zStep, Blocks.rail);
+					setBlock(world, x + 1, y, z + zStep, Blocks.rail);
+					setBlock(world, x + 1, y, z, Blocks.rail);
+					setBlock(world, x - (tunnelLength - 1), y, z, Blocks.rail);
+				}
 				for (int u = 3; u < tunnelLength; u++) {
 					setTunnelSliceEW(world, x - u, y, z, u);
 				}
-				setBlock(world, x - (tunnelLength - 1), y, z, Blocks.rail);
 			}
 		} else {
 			int xStep = (direction == EAST) ? 1 : -1;
-			setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
-			setBlock(world, x - xStep, y, z + 1, Blocks.golden_rail);
-			spawnEntity(world, new EntityMinecartEmpty(world), x, y, z - 1);
+			if (tunnelRails) {
+				setBlock(world, x - xStep, y, z - 1, Blocks.golden_rail);
+				setBlock(world, x - xStep, y, z + 1, Blocks.golden_rail);
+				spawnEntity(world, new EntityMinecartEmpty(world), x, y, z - 1);
+			}
 			for (; y > tunnelDepth; y--) {
 				for (int w = 1; w < 3; w++) {
 					setBlock(world, x, y - 1, z - w, Blocks.stonebrick);
@@ -955,24 +992,28 @@ public class ItemInstaStructure extends Item {
 					setBlock(world, x - xStep, y + 4, z + 2, Blocks.torch,
 							torchMeta, blockUpdateFlag);
 				case 3:
-					setBlock(world, x, y, z - 1, Blocks.rail, railMeta,
-							blockUpdateFlag);
-					setBlock(world, x, y, z + 1, Blocks.rail, railMeta,
-							blockUpdateFlag);
+					if (tunnelRails) {
+						setBlock(world, x, y, z - 1, Blocks.rail, railMeta,
+								blockUpdateFlag);
+						setBlock(world, x, y, z + 1, Blocks.rail, railMeta,
+								blockUpdateFlag);
+					}
 					break;
 				case 0:
 				case 2:
 				case 4:
-					if (numSteps > 1) {
-						setBlock(world, x, y, z - 2, Blocks.redstone_torch,
-								redTorchMeta, blockUpdateFlag);
-						setBlock(world, x, y, z + 2, Blocks.redstone_torch,
-								redTorchMeta, blockUpdateFlag);
+					if (tunnelRails) {
+						if (numSteps > 1) {
+							setBlock(world, x, y, z - 2, Blocks.redstone_torch,
+									redTorchMeta, blockUpdateFlag);
+							setBlock(world, x, y, z + 2, Blocks.redstone_torch,
+									redTorchMeta, blockUpdateFlag);
+						}
+						setBlock(world, x, y, z - 1, Blocks.golden_rail,
+								poweredMeta, blockUpdateFlag);
+						setBlock(world, x, y, z + 1, Blocks.golden_rail,
+								poweredMeta, blockUpdateFlag);
 					}
-					setBlock(world, x, y, z - 1, Blocks.golden_rail,
-							poweredMeta, blockUpdateFlag);
-					setBlock(world, x, y, z + 1, Blocks.golden_rail,
-							poweredMeta, blockUpdateFlag);
 					break;
 				}
 				x += xStep;
@@ -990,9 +1031,11 @@ public class ItemInstaStructure extends Item {
 					}
 					damBlock(world, x + u * xStep, y + v, z + 3);
 				}
-				if (u < 2) {
-					setBlock(world, x + u * xStep, y, z + 1, Blocks.rail);
-					setBlock(world, x + u * xStep, y, z - 1, Blocks.rail);
+				if (tunnelRails) {
+					if (u < 2) {
+						setBlock(world, x + u * xStep, y, z + 1, Blocks.rail);
+						setBlock(world, x + u * xStep, y, z - 1, Blocks.rail);
+					}
 				}
 				// set ceiling.
 				for (int w = -3; w < 4; w++) {
@@ -1007,27 +1050,31 @@ public class ItemInstaStructure extends Item {
 			}
 			x += 2 * xStep;
 			if (direction == EAST) {
-				setBlock(world, x - xStep, y, z - 2, Blocks.rail);
-				setBlock(world, x + xStep, y, z - 2, Blocks.rail);
-				setBlock(world, x + xStep, y, z - 1, Blocks.rail);
-				setBlock(world, x + xStep, y, z - 0, Blocks.rail);
-				setBlock(world, x + xStep, y, z + 1, Blocks.rail);
-				setBlock(world, x, y, z + 1, Blocks.rail);
 				for (int w = 3; w < tunnelLength; w++) {
 					setTunnelSliceNS(world, x, y, z - w, w);
 				}
-				setBlock(world, x, y, z - (tunnelLength - 1), Blocks.rail);
+				if (tunnelRails) {
+					setBlock(world, x - xStep, y, z - 2, Blocks.rail);
+					setBlock(world, x + xStep, y, z - 2, Blocks.rail);
+					setBlock(world, x + xStep, y, z - 1, Blocks.rail);
+					setBlock(world, x + xStep, y, z - 0, Blocks.rail);
+					setBlock(world, x + xStep, y, z + 1, Blocks.rail);
+					setBlock(world, x, y, z + 1, Blocks.rail);
+					setBlock(world, x, y, z - (tunnelLength - 1), Blocks.rail);
+				}
 			} else {
-				setBlock(world, x - xStep, y, z + 2, Blocks.rail);
-				setBlock(world, x + xStep, y, z + 2, Blocks.rail);
-				setBlock(world, x + xStep, y, z + 1, Blocks.rail);
-				setBlock(world, x + xStep, y, z + 0, Blocks.rail);
-				setBlock(world, x + xStep, y, z - 1, Blocks.rail);
-				setBlock(world, x, y, z - 1, Blocks.rail);
 				for (int w = 3; w < tunnelLength; w++) {
 					setTunnelSliceNS(world, x, y, z + w, w);
 				}
-				setBlock(world, x, y, z + tunnelLength - 1, Blocks.rail);
+				if (tunnelRails) {
+					setBlock(world, x - xStep, y, z + 2, Blocks.rail);
+					setBlock(world, x + xStep, y, z + 2, Blocks.rail);
+					setBlock(world, x + xStep, y, z + 1, Blocks.rail);
+					setBlock(world, x + xStep, y, z + 0, Blocks.rail);
+					setBlock(world, x + xStep, y, z - 1, Blocks.rail);
+					setBlock(world, x, y, z - 1, Blocks.rail);
+					setBlock(world, x, y, z + tunnelLength - 1, Blocks.rail);
+				}
 			}
 		}
 	}
@@ -1049,9 +1096,12 @@ public class ItemInstaStructure extends Item {
 		}
 		switch (s % 4) {
 		case 3:
-			setBlock(world, x - 1, y, z, Blocks.golden_rail);
-			setBlock(world, x, y, z, Blocks.redstone_torch, 5, blockUpdateFlag);
-			setBlock(world, x + 1, y, z, Blocks.golden_rail);
+			if (tunnelRails) {
+				setBlock(world, x - 1, y, z, Blocks.golden_rail);
+				setBlock(world, x, y, z, Blocks.redstone_torch, 5,
+						blockUpdateFlag);
+				setBlock(world, x + 1, y, z, Blocks.golden_rail);
+			}
 			setBlock(world, x, y + h - 1, z, Blocks.glowstone);
 			break;
 		case 1:
@@ -1065,8 +1115,10 @@ public class ItemInstaStructure extends Item {
 				setBlock(world, x + u, y + h - 1, z, Blocks.nether_brick);
 			}
 		default:
-			setBlock(world, x - 1, y, z, Blocks.rail);
-			setBlock(world, x + 1, y, z, Blocks.rail);
+			if (tunnelRails) {
+				setBlock(world, x - 1, y, z, Blocks.rail);
+				setBlock(world, x + 1, y, z, Blocks.rail);
+			}
 		}
 	}
 
@@ -1087,9 +1139,12 @@ public class ItemInstaStructure extends Item {
 		}
 		switch (s % 4) {
 		case 3:
-			setBlock(world, x, y, z - 1, Blocks.golden_rail);
-			setBlock(world, x, y, z, Blocks.redstone_torch, 5, blockUpdateFlag);
-			setBlock(world, x, y, z + 1, Blocks.golden_rail);
+			if (tunnelRails) {
+				setBlock(world, x, y, z - 1, Blocks.golden_rail);
+				setBlock(world, x, y, z, Blocks.redstone_torch, 5,
+						blockUpdateFlag);
+				setBlock(world, x, y, z + 1, Blocks.golden_rail);
+			}
 			setBlock(world, x, y + h - 1, z, Blocks.glowstone);
 			break;
 		case 1:
@@ -1103,8 +1158,10 @@ public class ItemInstaStructure extends Item {
 			}
 			setBlock(world, x, y, z, Blocks.torch, 5, blockUpdateFlag);
 		default:
-			setBlock(world, x, y, z - 1, Blocks.rail);
-			setBlock(world, x, y, z + 1, Blocks.rail);
+			if (tunnelRails) {
+				setBlock(world, x, y, z - 1, Blocks.rail);
+				setBlock(world, x, y, z + 1, Blocks.rail);
+			}
 		}
 	}
 
@@ -1118,13 +1175,16 @@ public class ItemInstaStructure extends Item {
 				char b = row.get(i);
 				switch (b) {
 				case 'a':
-					setAnvil(world, x + i, y, z + j, i, j, blocks);
+					if (towerAnvil)
+						setAnvil(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'b':
-					setBlock(world, x + i, y, z + j, Blocks.brewing_stand);
+					if (towerBrewing)
+						setBlock(world, x + i, y, z + j, Blocks.brewing_stand);
 					break;
 				case 'B':
-					setBlock(world, x + i, y, z + j, Blocks.bookshelf);
+					if (towerLibrary)
+						setBlock(world, x + i, y, z + j, Blocks.bookshelf);
 					break;
 				case 'c':
 					// Set on next pass.
@@ -1139,10 +1199,13 @@ public class ItemInstaStructure extends Item {
 					// Set on next pass.
 					break;
 				case 'e':
-					setBlock(world, x + i, y, z + j, Blocks.emerald_block);
+					if (towerBeacon)
+						setBlock(world, x + i, y, z + j, Blocks.emerald_block);
 					break;
 				case 'E':
-					setBlock(world, x + i, y, z + j, Blocks.enchanting_table);
+					if (towerLibrary)
+						setBlock(world, x + i, y, z + j,
+								Blocks.enchanting_table);
 					break;
 				case 'f':
 					setBlock(world, x + i, y, z + j, Blocks.farmland);
@@ -1188,10 +1251,12 @@ public class ItemInstaStructure extends Item {
 							blockUpdateFlag);
 					break;
 				case 'q':
-					setBlock(world, x + i, y, z + j, Blocks.diamond_block);
+					if (towerBeacon)
+						setBlock(world, x + i, y, z + j, Blocks.diamond_block);
 					break;
 				case 'Q':
-					setBlock(world, x + i, y, z + j, Blocks.beacon);
+					if (towerBeacon)
+						setBlock(world, x + i, y, z + j, Blocks.beacon);
 					break;
 				case 'r':
 					setBlock(world, x + i, y, z + j, Blocks.carpet, 14,
@@ -1231,7 +1296,8 @@ public class ItemInstaStructure extends Item {
 					setFenceGate(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case '=':
-					setBlock(world, x + i, y, z + j, Blocks.rail);
+					if (towerRails)
+						setBlock(world, x + i, y, z + j, Blocks.rail);
 					break;
 				case '.':
 					// Do nothing - NO-OP.
@@ -1267,7 +1333,12 @@ public class ItemInstaStructure extends Item {
 					setFurnace(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'l':
-					setLadder(world, x + i, y, z + j, i, j, blocks, prevBlocks);
+					if (prevBlocks != null) {
+						setLadder(world, x + i, y, z + j, i, j, blocks,
+								prevBlocks);
+					} else {
+						setBlock(world, x + i, y, z + j, Blocks.stonebrick);
+					}
 					break;
 				case 'p':
 					setBlock(world, x + i, y, z + j,
