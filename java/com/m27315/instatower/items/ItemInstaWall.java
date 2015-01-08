@@ -1,90 +1,31 @@
 package com.m27315.instatower.items;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import lib.Constants;
-
-import org.apache.http.Consts;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.io.Files;
-import com.m27315.instatower.InstaTower;
-
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.item.EntityMinecartEmpty;
-import net.minecraft.entity.passive.EntityCow;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.entity.passive.EntityHorse;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.util.ForgeDirection;
+
+import org.apache.logging.log4j.Logger;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemInstaWall extends ItemInstaStructure {
 	private static String name = "iteminstawall";
 	public static int wallWidth = 11;
 	public static int wallLength = 51;
 	public static int wallHeight = 30;
-	private static Block air = Blocks.air;
-	private static Block brick = Blocks.stonebrick;
-	private static Block button = Blocks.wooden_button;
-	private static Block dirt = Blocks.dirt;
-	private static Block door = Blocks.iron_door;
-	private static Block fence = Blocks.fence;
-	private static Block gate = Blocks.fence_gate;
-	private static Block glow = Blocks.glowstone;
-	private static Block plate = Blocks.wooden_pressure_plate;
-	private static Block pRail = Blocks.golden_rail;
-	private static Block rail = Blocks.rail;
-	private static Block redTorch = Blocks.redstone_torch;
-	private static Block stone = Blocks.stone;
-	private static Block torch = Blocks.torch;
 
-	public ItemInstaWall(FMLPreInitializationEvent event, Logger logger) {
-		Configuration config = new Configuration(
-				event.getSuggestedConfigurationFile());
-		config.load();
-		wallCraft = config.getBoolean("wallCraft", "Wall", wallCraft,
-				"When enabled, the InstaWall may be crafted using "
-						+ "a simple recipe; otherwise, it is only "
-						+ "available in Creative mode.");
-		towerBasement = config.getBoolean("towerBasement", "Tower",
-				towerBasement,
-				"When enabled, a basement is created with potential mining "
-						+ "tunnel access and possible rail lines.");
-		towerRails = config
-				.getBoolean("towerRails", "Tower", towerRails,
-						"When enabled, a railine is included in each tower and castle.");
-		config.save();
+	public ItemInstaWall(Logger logger, boolean wallCraft,
+			int wallLength, boolean towerBasement, boolean towerRails) {
+		this.wallLength = wallLength;
+		this.towerBasement = towerBasement;
+		this.towerRails = towerRails;
 		this.logger = logger;
 		this.setMaxStackSize(1);
 		this.setUnlocalizedName(Constants.MODID + '_' + name);
@@ -93,9 +34,8 @@ public class ItemInstaWall extends ItemInstaStructure {
 		GameRegistry.registerItem(this, name);
 		if (wallCraft) {
 			GameRegistry.addRecipe(new ItemStack(this), "SGS", "SWS", "SIS",
-					'S', new ItemStack(Blocks.stonebrick), 'W', new ItemStack(
-							Blocks.wool), 'G', new ItemStack(Blocks.glass),
-					'I', new ItemStack(Items.iron_ingot));
+					'S', new ItemStack(brick), 'W', new ItemStack(wool), 'G',
+					new ItemStack(glass), 'I', new ItemStack(Items.iron_ingot));
 		}
 	}
 

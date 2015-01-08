@@ -1,60 +1,25 @@
 package com.m27315.instatower.items;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import lib.Constants;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
 
-import org.apache.http.Consts;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.io.Files;
-import com.m27315.instatower.InstaTower;
-
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.item.EntityMinecartEmpty;
-import net.minecraft.entity.passive.EntityCow;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.entity.passive.EntityHorse;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntitySheep;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemDoor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class ItemInstaCastle extends ItemInstaStructure {
 	private String name = "iteminstacastle";
+	private int wallLength = 0;
 	private int halfWallLength = 0;
 	private int halfWallWidth = 0;
 
-	public ItemInstaCastle(FMLPreInitializationEvent event, Logger logger) {
-		halfWallLength = ItemInstaWall.wallLength / 2;
+	public ItemInstaCastle(Logger logger, int wallLength) {
+		this.wallLength = wallLength;
+		halfWallLength = wallLength / 2;
 		halfWallWidth = ItemInstaWall.wallWidth / 2;
 		this.logger = logger;
 		this.setMaxStackSize(1);
@@ -120,10 +85,15 @@ public class ItemInstaCastle extends ItemInstaStructure {
 			ModItems.instaWallItem.setWall(world, x - d1, y, z + d2, WEST);
 			// WESTERN wall
 			ModItems.instaWallItem.setWall(world, x - d2, y, z - d1, NORTH);
-			ModItems.instaGardenItem.setStructure(world, x + 21, y, z
-					+ halfWallLength - 2, NORTH, true);
-			ModItems.instaGardenItem.setStructure(world, x - 3, y, z
-					+ halfWallLength - 2, NORTH, true);
+			// Only place gardens if enough room.
+			if (wallLength >= 51) {
+				// EASTERN garden
+				ModItems.instaGardenItem.setStructure(world, x + 21, y, z
+						+ halfWallLength - 2, NORTH, true);
+				// WESTERN garden
+				ModItems.instaGardenItem.setStructure(world, x - 3, y, z
+						+ halfWallLength - 2, NORTH, true);
+			}
 			return true;
 		}
 		return false;
