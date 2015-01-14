@@ -131,6 +131,20 @@ public class ItemInstaStructure extends Item {
 			int facingDirection = MathHelper
 					.floor_double((double) ((player.rotationYaw * 4F) / 360F) + 0.5D) & 3;
 
+			if (world.provider.dimensionId == -1) {
+				brick = nBrick;
+				fence = nFence;
+				pane = Blocks.iron_bars;
+				stairs = Blocks.nether_brick_stairs;
+				dirt = Blocks.netherrack;
+			} else {
+				brick = Blocks.stonebrick;
+				fence = Blocks.fence;
+				pane = Blocks.glass_pane;
+				stairs = Blocks.stone_brick_stairs;
+				dirt = Blocks.dirt;
+			}
+
 			return setStructure(world, x, y, z, facingDirection, setAnimals);
 		}
 		return false;
