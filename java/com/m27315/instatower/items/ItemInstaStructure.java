@@ -137,12 +137,14 @@ public class ItemInstaStructure extends Item {
 				pane = Blocks.iron_bars;
 				stairs = Blocks.nether_brick_stairs;
 				dirt = Blocks.netherrack;
+				stone = Blocks.netherrack;
 			} else {
 				brick = Blocks.stonebrick;
 				fence = Blocks.fence;
 				pane = Blocks.glass_pane;
 				stairs = Blocks.stone_brick_stairs;
 				dirt = Blocks.dirt;
+				stone = Blocks.stone;
 			}
 
 			return setStructure(world, x, y, z, facingDirection, setAnimals);
@@ -793,7 +795,8 @@ public class ItemInstaStructure extends Item {
 	protected void damBlock(World world, int x, int y, int z) {
 		Block block = world.getBlock(x, y, z);
 		String name = block.getLocalizedName();
-		if (!(name.endsWith(" Ore") || world.isAirBlock(x, y, z))) {
+		int yGround = world.getTopSolidOrLiquidBlock(x, z);
+		if (!(name.endsWith(" Ore") || (y < yGround && world.isAirBlock(x, y, z)))) {
 			setBlock(world, x, y, z, brick);
 		}
 	}
@@ -875,11 +878,13 @@ public class ItemInstaStructure extends Item {
 				spawnEntity(world, new EntityMinecartEmpty(world), x - 1, y, z);
 			}
 			for (; y > tunnelDepth; y--) {
+				// Place floor with stairs.
 				for (int u = 1; u < 3; u++) {
 					setBlock(world, x - u, y - 1, z, brick);
 					setBlock(world, x + u, y - 1, z, brick);
 				}
 				setBlock(world, x, y - 1, z, stairs, stepMeta, blockUpdateFlag);
+				// Setting walls and clearing tunnel.
 				for (int v = 0; v < 4; v++) {
 					damBlock(world, x - 3, y + v, z);
 					for (int u = -2; u < 3; u++) {
@@ -887,6 +892,7 @@ public class ItemInstaStructure extends Item {
 					}
 					damBlock(world, x + 3, y + v, z);
 				}
+				// Place ceiling.
 				for (int u = -3; u < 4; u++) {
 					damBlock(world, x + u, y + 4, z);
 				}
@@ -1152,11 +1158,6 @@ public class ItemInstaStructure extends Item {
 
 	protected void setTunnelSliceEW(World world, int x, int y, int z, int s) {
 		int h = 5;
-		// Build floor and ceiling.
-		for (int w = -3; w <= 3; w++) {
-			solidifyBlock(world, x, y - 1, z + w);
-			solidifyBlock(world, x, y + h, z + w);
-		}
 		// Build walls and clear tunnel.
 		for (int v = 0; v < h; v++) {
 			damBlock(world, x, y + v, z - 3);
@@ -1164,6 +1165,11 @@ public class ItemInstaStructure extends Item {
 				vaporizeBlock(world, x, y + v, z + w);
 			}
 			damBlock(world, x, y + v, z + 3);
+		}
+		// Build floor and ceiling.
+		for (int w = -3; w <= 3; w++) {
+			solidifyBlock(world, x, y - 1, z + w);
+			solidifyBlock(world, x, y + h, z + w);
 		}
 		switch (s % 4) {
 		case 3:
@@ -1231,8 +1237,7 @@ public class ItemInstaStructure extends Item {
 					break;
 				case 'E':
 					if (towerLibrary)
-						setBlock(world, x + i, y, z + j,
-								eTable);
+						setBlock(world, x + i, y, z + j, eTable);
 					break;
 				case 'f':
 					setBlock(world, x + i, y, z + j, farmland);
@@ -1244,15 +1249,13 @@ public class ItemInstaStructure extends Item {
 					setBlock(world, x + i, y, z + j, glow);
 					break;
 				case 'J':
-					setBlock(world, x + i, y, z + j, pStem, 7,
-							blockUpdateFlag);
+					setBlock(world, x + i, y, z + j, pStem, 7, blockUpdateFlag);
 					break;
 				case 'g':
 					setBlock(world, x + i, y, z + j, pane);
 					break;
 				case 'G':
-					setBlock(world, x + i, y, z + j, reeds, 0,
-							blockUpdateFlag);
+					setBlock(world, x + i, y, z + j, reeds, 0, blockUpdateFlag);
 					break;
 				case 'H':
 					setBed(world, x + i, y, z + j, i, j, blocks);
@@ -1264,8 +1267,7 @@ public class ItemInstaStructure extends Item {
 					setBlock(world, x + i, y, z + j, waterlily);
 					break;
 				case 'M':
-					setBlock(world, x + i, y, z + j, mStem, 7,
-							blockUpdateFlag);
+					setBlock(world, x + i, y, z + j, mStem, 7, blockUpdateFlag);
 					break;
 				case 'o':
 					setBlock(world, x + i, y, z + j, obsidian);
@@ -1309,12 +1311,10 @@ public class ItemInstaStructure extends Item {
 					setButton(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'w':
-					setBlock(world, x + i, y, z + j, water, 0,
-							blockUpdateFlag);
+					setBlock(world, x + i, y, z + j, water, 0, blockUpdateFlag);
 					break;
 				case 'W':
-					setBlock(world, x + i, y, z + j, wheat, 7,
-							blockUpdateFlag);
+					setBlock(world, x + i, y, z + j, wheat, 7, blockUpdateFlag);
 					break;
 				case '+':
 					setBlock(world, x + i, y, z + j, fence);
@@ -1331,8 +1331,7 @@ public class ItemInstaStructure extends Item {
 					break;
 				default:
 					Block B = world.getBlock(x + i, y, z + j);
-					if (!(B.equals(air) || B.equals(torch) || B
-							.equals(brick))) {
+					if (!(B.equals(air) || B.equals(torch) || B.equals(brick))) {
 						world.setBlockToAir(x + i, y, z + j);
 					}
 					break;
