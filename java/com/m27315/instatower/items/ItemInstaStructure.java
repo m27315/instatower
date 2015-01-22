@@ -72,6 +72,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block anvil = Blocks.anvil;
 	protected static Block beacon = Blocks.beacon;
 	protected static Block bed = Blocks.bed;
+	protected static Block bedrock = Blocks.bedrock;
 	protected static Block brewingStand = Blocks.brewing_stand;
 	protected static Block brick = Blocks.stonebrick;
 	protected static Block bookshelf = Blocks.bookshelf;
@@ -85,6 +86,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block dirt = Blocks.dirt;
 	protected static Block door = Blocks.iron_door;
 	protected static Block emerald = Blocks.emerald_block;
+	protected static Block eStone = Blocks.end_stone;
 	protected static Block eTable = Blocks.enchanting_table;
 	protected static Block farmland = Blocks.farmland;
 	protected static Block fence = Blocks.fence;
@@ -114,7 +116,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block waterlily = Blocks.waterlily;
 	protected static Block wheat = Blocks.wheat;
 	protected static Block wool = Blocks.wool;
-
+	
 	public boolean setStructure(ItemStack stack, EntityPlayer player,
 			World world, int x, int y, int z, int side, float hitX, float hitY,
 			float hitZ, boolean setAnimals) {
@@ -131,14 +133,27 @@ public class ItemInstaStructure extends Item {
 			int facingDirection = MathHelper
 					.floor_double((double) ((player.rotationYaw * 4F) / 360F) + 0.5D) & 3;
 
-			if (world.provider.dimensionId == -1) {
+			switch (world.provider.dimensionId) {
+			case -1:
+				// nether
 				brick = nBrick;
 				fence = nFence;
 				pane = Blocks.iron_bars;
 				stairs = Blocks.nether_brick_stairs;
 				dirt = Blocks.netherrack;
 				stone = Blocks.netherrack;
-			} else {
+				break;
+			case 1:
+				// end
+				brick = obsidian;
+				fence = nFence;
+				pane = Blocks.iron_bars;
+				stairs = Blocks.nether_brick_stairs;
+				dirt = eStone;
+				stone = eStone;
+				break;
+			default:
+				// overworld
 				brick = Blocks.stonebrick;
 				fence = Blocks.fence;
 				pane = Blocks.glass_pane;
@@ -183,7 +198,20 @@ public class ItemInstaStructure extends Item {
 					}
 				}
 				// Clear out blocks between this block and top of structure
-				for (k = layerStack.size(); k > 0; k--) {
+				if (world.provider.dimensionId == -1) {
+					// in nether, start at lowest block of bedrock.
+					for (k = 1; k < 500; k++) {
+						Block b = world.getBlock(x + i, y + k, z + j);
+						if (b.equals(bedrock)) {
+							k--;
+							break;
+						}
+					}
+				} else {
+					// start at top of tower.
+					k = layerStack.size();
+				}
+				for (; k > 0; k--) {
 					if (towerBasement || k >= groundLevel) {
 						Block b = world.getBlock(x + i, y + k, z + j);
 						if (!(b.equals(air) || b.equals(torch)
@@ -796,7 +824,8 @@ public class ItemInstaStructure extends Item {
 		Block block = world.getBlock(x, y, z);
 		String name = block.getLocalizedName();
 		int yGround = world.getTopSolidOrLiquidBlock(x, z);
-		if (!(name.endsWith(" Ore") || (y < yGround && world.isAirBlock(x, y, z)))) {
+		if (!(name.endsWith(" Ore") || (y < yGround && world
+				.isAirBlock(x, y, z)))) {
 			setBlock(world, x, y, z, brick);
 		}
 	}
