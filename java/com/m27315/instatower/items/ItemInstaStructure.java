@@ -72,6 +72,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block anvil = Blocks.anvil;
 	protected static Block beacon = Blocks.beacon;
 	protected static Block bed = Blocks.bed;
+	protected static Block bedrock = Blocks.bedrock;
 	protected static Block brewingStand = Blocks.brewing_stand;
 	protected static Block brick = Blocks.stonebrick;
 	protected static Block bookshelf = Blocks.bookshelf;
@@ -183,7 +184,20 @@ public class ItemInstaStructure extends Item {
 					}
 				}
 				// Clear out blocks between this block and top of structure
-				for (k = layerStack.size(); k > 0; k--) {
+				if (world.provider.dimensionId == -1) {
+					// in nether, start at lowest block of bedrock.
+					for (k = 1; k < 500; k++) {
+						Block b = world.getBlock(x + i, y + k, z + j);
+						if (b.equals(bedrock)){
+							k--;
+							break;
+						}
+					}
+				} else {
+					//start at top of tower.
+					k = layerStack.size();
+				}
+				for (; k > 0; k--) {
 					if (towerBasement || k >= groundLevel) {
 						Block b = world.getBlock(x + i, y + k, z + j);
 						if (!(b.equals(air) || b.equals(torch)
