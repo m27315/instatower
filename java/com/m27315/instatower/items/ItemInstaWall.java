@@ -5,7 +5,6 @@ import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
@@ -21,8 +20,8 @@ public class ItemInstaWall extends ItemInstaStructure {
 	public static int wallLength = 51;
 	public static int wallHeight = 30;
 
-	public ItemInstaWall(Logger logger, boolean wallCraft,
-			int wallLength, boolean towerBasement, boolean towerRails) {
+	public ItemInstaWall(Logger logger, boolean wallCraft, int wallLength,
+			boolean towerBasement, boolean towerRails) {
 		this.wallLength = wallLength;
 		this.towerBasement = towerBasement;
 		this.towerRails = towerRails;
@@ -33,9 +32,9 @@ public class ItemInstaWall extends ItemInstaStructure {
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
 		if (wallCraft) {
-			GameRegistry.addRecipe(new ItemStack(this), "SGS", "SWS", "SIS",
-					'S', new ItemStack(brick), 'W', new ItemStack(wool), 'G',
-					new ItemStack(glass), 'I', new ItemStack(Items.iron_ingot));
+			GameRegistry.addRecipe(new ItemStack(this), "SgS", "SwS", "SIS",
+					'S', Blocks.stonebrick, 'g', Blocks.glowstone, 'w',
+					Blocks.wool, 'I', Blocks.iron_block);
 		}
 	}
 

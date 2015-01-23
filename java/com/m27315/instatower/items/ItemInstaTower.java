@@ -3,7 +3,7 @@ package com.m27315.instatower.items;
 import lib.Constants;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
@@ -40,12 +40,11 @@ public class ItemInstaTower extends ItemInstaStructure {
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
 		if (towerCraft) {
-			GameRegistry
-					.addRecipe(new ItemStack(this), "SWS", "GSG", "dwd", 'd',
-							new ItemStack(dirt), 'w', new ItemStack(
-									Items.wheat_seeds), 'G', new ItemStack(
-									glass), 'S', new ItemStack(cobblestone),
-							'W', new ItemStack(Items.stick));
+			GameRegistry.addRecipe(new ItemStack(this), "gDe", "WGW", "SIS",
+					'g', Blocks.glowstone, 'e', Blocks.emerald_block, 'S',
+					Blocks.stonebrick, 'I', Blocks.iron_block, 'G',
+					Blocks.gold_block, 'W', Blocks.log, 'D',
+					Blocks.diamond_block);
 		}
 	}
 

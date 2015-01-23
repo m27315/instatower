@@ -3,6 +3,7 @@ package com.m27315.instatower.items;
 import lib.Constants;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -14,7 +15,8 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class ItemInstaGarden extends ItemInstaStructure {
 	protected String name = "iteminstagarden";
 
-	public ItemInstaGarden(Logger logger, boolean gardenCraft, boolean gardenAnimals) {
+	public ItemInstaGarden(Logger logger, boolean gardenCraft,
+			boolean gardenAnimals) {
 		this.gardenAnimals = gardenAnimals;
 		this.schematic = "/assets/" + Constants.MODID
 				+ "/schematics/instagarden.cfg";
@@ -25,10 +27,12 @@ public class ItemInstaGarden extends ItemInstaStructure {
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
 		if (gardenCraft) {
-			GameRegistry.addRecipe(new ItemStack(this), "t t", "LsL", "ddd",
-					'd', new ItemStack(dirt), 's', new ItemStack(
-							Items.wheat_seeds), 'L', new ItemStack(log), 't',
-					new ItemStack(torch));
+			GameRegistry.addRecipe(new ItemStack(this), "Lsg", "MPw", "cdp",
+					'L', Blocks.log, 'g', Blocks.glowstone, 'M',
+					Items.melon_seeds, 's', Items.reeds, 'P',
+					Items.pumpkin_seeds, 'c', Items.golden_carrot, 'w',
+					Items.wheat_seeds, 'd', Blocks.diamond_block, 'p',
+					Items.potato);
 		}
 	}
 
