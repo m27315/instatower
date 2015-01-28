@@ -47,6 +47,7 @@ public class ItemInstaStructure extends Item {
 	protected List<String> layerStack;
 
 	// Configuration variables.
+	protected boolean hutChest = true;
 	protected boolean towerAnvil = true;
 	protected boolean towerBasement = true;
 	protected boolean towerBeacon = true;
@@ -94,6 +95,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block gate = Blocks.fence_gate;
 	protected static Block glass = Blocks.glass;
 	protected static Block glow = Blocks.glowstone;
+	protected static Block grass = Blocks.grass;
 	protected static Block ladder = Blocks.ladder;
 	protected static Block log = Blocks.log;
 	protected static Block mStem = Blocks.melon_stem;
@@ -1344,6 +1346,9 @@ public class ItemInstaStructure extends Item {
 					break;
 				case 'W':
 					setBlock(world, x + i, y, z + j, wheat, 7, blockUpdateFlag);
+					break;
+				case '*':
+					setBlock(world, x+i, y, z+j, grass);
 					break;
 				case '+':
 					setBlock(world, x + i, y, z + j, fence);
