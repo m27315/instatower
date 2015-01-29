@@ -14,7 +14,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class ItemInstaHut extends ItemInstaStructure {
 	protected String name = "iteminstahut";
 
-	public ItemInstaHut(Logger logger, boolean hutCraft, boolean hutChest) {
+	public ItemInstaHut(Logger logger, String hutCraft, boolean hutChest) {
 		this.hutChest = hutChest;
 		this.schematic = "/assets/" + Constants.MODID
 				+ "/schematics/instahut.cfg";
@@ -24,12 +24,14 @@ public class ItemInstaHut extends ItemInstaStructure {
 		this.setCreativeTab(CreativeTabs.tabMaterials);
 		this.setTextureName(Constants.MODID + ":" + name);
 		GameRegistry.registerItem(this, name);
-		if (hutCraft) {
-			GameRegistry.addRecipe(new ItemStack(this), "gDe", "WGW", "SIS",
-					'g', Blocks.glowstone, 'e', Blocks.emerald_block, 'S',
-					Blocks.stonebrick, 'I', Blocks.iron_block, 'G',
-					Blocks.gold_block, 'W', Blocks.log, 'D',
-					Blocks.diamond_block);
+		if (hutCraft.equalsIgnoreCase("hard")) {
+			GameRegistry.addRecipe(new ItemStack(this), "tdt", "cfw", "dWd",
+					't', Blocks.torch, 'd', Blocks.dirt, 'c', Blocks.chest,
+					'f', Blocks.furnace, 'w', Blocks.wool, 'W', Blocks.log);
+		} else if (hutCraft.equalsIgnoreCase("easy")) {
+			GameRegistry.addRecipe(new ItemStack(this), "dpd", "dCd", "dWd",
+					'd', Blocks.dirt, 'W', Blocks.log, 'C', Blocks.cobblestone,
+					'p', Blocks.planks);
 		}
 	}
 
