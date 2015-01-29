@@ -9,6 +9,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public final class ModItems {
 	public static Item diviningRodItem;
+	public static ItemInstaHut instaHutItem;
 	public static ItemInstaTower instaTowerItem;
 	public static ItemInstaGarden instaGardenItem;
 	public static ItemInstaWall instaWallItem;
@@ -18,6 +19,12 @@ public final class ModItems {
 		Configuration config = new Configuration(
 				event.getSuggestedConfigurationFile());
 		config.load();
+		String hutCraft = config.getString("hutCraft", "Hut", "hard",
+				"Controls crafting recipe difficulty.", new String[] { "hard",
+						"easy", "none" });
+
+		boolean hutChest = config.getBoolean("hutChest", "Hut", false,
+				"When enabled, hut will have a chest full of goodies.");
 		boolean towerCraft = config.getBoolean("towerCraft", "Tower", true,
 				"When enabled, the InstaTower "
 						+ " may be crafted using a simple "
@@ -71,6 +78,7 @@ public final class ModItems {
 		config.save();
 
 		diviningRodItem = new ItemDiviningRod(event, logger);
+		instaHutItem = new ItemInstaHut(logger, hutCraft, hutChest);
 		instaTowerItem = new ItemInstaTower(logger, towerCraft, towerAnvil,
 				towerBeacon, towerBrewing, towerChests, towerLibrary,
 				towerBasement, towerRails, tunnelEnable, tunnelClear,

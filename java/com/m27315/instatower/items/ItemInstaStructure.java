@@ -47,6 +47,7 @@ public class ItemInstaStructure extends Item {
 	protected List<String> layerStack;
 
 	// Configuration variables.
+	protected boolean hutChest = true;
 	protected boolean towerAnvil = true;
 	protected boolean towerBasement = true;
 	protected boolean towerBeacon = true;
@@ -85,6 +86,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block diamond = Blocks.diamond_block;
 	protected static Block dirt = Blocks.dirt;
 	protected static Block door = Blocks.iron_door;
+	protected static Block wDoor = Blocks.wooden_door;
 	protected static Block emerald = Blocks.emerald_block;
 	protected static Block eStone = Blocks.end_stone;
 	protected static Block eTable = Blocks.enchanting_table;
@@ -94,6 +96,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block gate = Blocks.fence_gate;
 	protected static Block glass = Blocks.glass;
 	protected static Block glow = Blocks.glowstone;
+	protected static Block grass = Blocks.grass;
 	protected static Block ladder = Blocks.ladder;
 	protected static Block log = Blocks.log;
 	protected static Block mStem = Blocks.melon_stem;
@@ -116,7 +119,7 @@ public class ItemInstaStructure extends Item {
 	protected static Block waterlily = Blocks.waterlily;
 	protected static Block wheat = Blocks.wheat;
 	protected static Block wool = Blocks.wool;
-	
+
 	public boolean setStructure(ItemStack stack, EntityPlayer player,
 			World world, int x, int y, int z, int side, float hitX, float hitY,
 			float hitZ, boolean setAnimals) {
@@ -695,16 +698,16 @@ public class ItemInstaStructure extends Item {
 	}
 
 	protected void setDoor(World world, int x, int y, int z, int i, int j,
-			List<List<Character>> blocks) {
-		List<Integer> panel = findNeighbors(blocks, 'p', i, j);
+			Block door, List<List<Character>> blocks) {
+		List<Integer> plate = findNeighbors(blocks, 'p', i, j);
 		// logger.info("setDoor: (x,y,z)=(" + x + "," + y + "," + z +
 		// "), (i,j)=("
 		// + i + "," + j + "), " + panel.size() + " wooden-panel sides.");
-		if (panel.isEmpty()) {
+		if (plate.isEmpty()) {
 			// logger.info("Setting basic door with no metadata and unknown orientation.");
 			setBlock(world, x, y, z, door, 0, blockUpdateFlag);
 		} else {
-			switch (panel.get(0)) {
+			switch (plate.get(0)) {
 			case SOUTH:
 				// logger.info("Setting door open to SOUTH");
 				ItemDoor.placeDoorBlock(world, x, y, z, 1, door);
@@ -1345,6 +1348,9 @@ public class ItemInstaStructure extends Item {
 				case 'W':
 					setBlock(world, x + i, y, z + j, wheat, 7, blockUpdateFlag);
 					break;
+				case '*':
+					setBlock(world, x + i, y, z + j, grass);
+					break;
 				case '+':
 					setBlock(world, x + i, y, z + j, fence);
 					break;
@@ -1382,7 +1388,7 @@ public class ItemInstaStructure extends Item {
 					setChest(world, x + i, y, z + j, i, j, blocks);
 					break;
 				case 'D':
-					setDoor(world, x + i, y, z + j, i, j, blocks);
+					setDoor(world, x + i, y, z + j, i, j, door, blocks);
 					break;
 				case 'F':
 					setFurnace(world, x + i, y, z + j, i, j, blocks);
@@ -1409,6 +1415,9 @@ public class ItemInstaStructure extends Item {
 				case 'T':
 					if (tunnelEnable)
 						setTunnel(world, x + i, y, z + j, i, j, blocks);
+					break;
+				case '[':
+					setDoor(world, x + i, y, z + j, i, j, wDoor, blocks);
 					break;
 				default:
 					// Do nothing.
